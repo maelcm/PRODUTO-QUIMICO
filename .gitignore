@@ -1,3 +1,5 @@
 .env
 credentials.json
 api_ocr/.env
+SISTEMA_WEB_NFE/.env
+SISTEMA_WEB_NFE/server/.env
