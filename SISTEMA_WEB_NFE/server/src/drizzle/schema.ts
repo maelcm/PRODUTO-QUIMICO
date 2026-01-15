@@ -11,7 +11,7 @@ export const users = mysqlTable('users', {
   createdAt: datetime('createdAt').notNull(),
   updatedAt: datetime('updatedAt').notNull(),
   lastSignedIn: datetime('lastSignedIn'),
-}, (table) => ({
+}, (table: any) => ({
   emailIdx: index('email_idx').on(table.email),
   openIdIdx: index('openId_idx').on(table.openId),
 }));
@@ -29,7 +29,7 @@ export const nfeInvoices = mysqlTable('nfe_invoices', {
   xmlUrl: varchar('xmlUrl', { length: 500 }),
   createdAt: datetime('createdAt').notNull(),
   updatedAt: datetime('updatedAt').notNull(),
-}, (table) => ({
+}, (table: any) => ({
   userIdIdx: index('userId_idx').on(table.userId),
   accessKeyIdx: index('accessKey_idx').on(table.accessKey),
 }));
@@ -49,7 +49,7 @@ export const nfeItems = mysqlTable('nfe_items', {
   ncm: varchar('ncm', { length: 10 }),
   createdAt: datetime('createdAt').notNull(),
   updatedAt: datetime('updatedAt').notNull(),
-}, (table) => ({
+}, (table: any) => ({
   invoiceIdIdx: index('invoiceId_idx').on(table.invoiceId),
   productNameIdx: index('productName_idx').on(table.productName),
 }));
@@ -72,7 +72,7 @@ export const manualProducts = mysqlTable('manual_products', {
   observations: varchar('observations', { length: 1000 }),
   createdAt: datetime('createdAt').notNull(),
   updatedAt: datetime('updatedAt').notNull(),
-}, (table) => ({
+}, (table: any) => ({
   userIdIdx: index('userId_idx').on(table.userId),
   productNameIdx: index('productName_idx').on(table.productName),
 }));
@@ -88,7 +88,7 @@ export const stockMovements = mysqlTable('stock_movements', {
   movementDate: date('movementDate').notNull(),
   createdAt: datetime('createdAt').notNull(),
   updatedAt: datetime('updatedAt').notNull(),
-}, (table) => ({
+}, (table: any) => ({
   userIdIdx: index('userId_idx').on(table.userId),
   productNameIdx: index('productName_idx').on(table.productName),
   movementDateIdx: index('movementDate_idx').on(table.movementDate),
@@ -106,7 +106,7 @@ export const dailyExpenses = mysqlTable('daily_expenses', {
   description: varchar('description', { length: 500 }),
   createdAt: datetime('createdAt').notNull(),
   updatedAt: datetime('updatedAt').notNull(),
-}, (table) => ({
+}, (table: any) => ({
   userIdIdx: index('userId_idx').on(table.userId),
   productNameIdx: index('productName_idx').on(table.productName),
   expenseDateIdx: index('expenseDate_idx').on(table.expenseDate),

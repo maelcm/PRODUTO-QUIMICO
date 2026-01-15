@@ -10,7 +10,7 @@ const rootDir = join(__dirname, '..');
 config({ path: join(rootDir, '.env') });
 
 export default {
-  schema: '../drizzle/schema.ts',
+  schema: './src/drizzle/schema.ts',
   out: './drizzle/migrations',
   dialect: 'mysql',
   dbCredentials: {

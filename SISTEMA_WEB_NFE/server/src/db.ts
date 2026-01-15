@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2';
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
-import * as schema from '../../drizzle/schema';
+import * as schema from './drizzle/schema';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { config } from 'dotenv';
@@ -277,17 +277,21 @@ export async function createDailyExpense(data: schema.NewDailyExpense) {
 }
 
 export async function getDailyExpensesByUserId(userId: number, startDate?: Date, endDate?: Date) {
-  let query = db.select().from(schema.dailyExpenses)
-    .where(eq(schema.dailyExpenses.userId, userId));
+  const conditions = [eq(schema.dailyExpenses.userId, userId)];
 
   if (startDate) {
-    query = query.where(gte(schema.dailyExpenses.expenseDate, startDate));
+    conditions.push(gte(schema.dailyExpenses.expenseDate, startDate));
   }
   if (endDate) {
-    query = query.where(lte(schema.dailyExpenses.expenseDate, endDate));
+    conditions.push(lte(schema.dailyExpenses.expenseDate, endDate));
   }
 
-  return await query.orderBy(desc(schema.dailyExpenses.expenseDate));
+  const whereClause = conditions.length === 1 ? conditions[0] : and(...conditions);
+
+  return await db.select()
+    .from(schema.dailyExpenses)
+    .where(whereClause)
+    .orderBy(desc(schema.dailyExpenses.expenseDate));
 }
 
 export async function deleteDailyExpense(id: number, userId: number) {

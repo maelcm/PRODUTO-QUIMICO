@@ -560,7 +560,7 @@ export const ocrRouter = router({
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+          const errorData = (await response.json().catch(() => ({ detail: response.statusText }))) as { detail?: string };
           throw new Error(errorData.detail || `Erro ao processar imagem: ${response.statusText}`);
         }
 

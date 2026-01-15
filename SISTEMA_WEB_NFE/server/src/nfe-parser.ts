@@ -1,7 +1,4 @@
-import { parseString } from 'xml2js';
-import { promisify } from 'util';
-
-const parseXML = promisify(parseString);
+import { parseStringPromise } from 'xml2js';
 
 export interface ParsedNfeData {
   accessKey: string;
@@ -42,13 +39,13 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
 
     console.log('[parseNfeXml] Iniciando parsing do XML...');
     
-    const result = await parseXML(xmlContent, {
+    const result = (await parseStringPromise(xmlContent, {
       explicitArray: false,
       mergeAttrs: true,
       explicitRoot: false,
       ignoreAttrs: false,
       trim: true,
-    });
+    })) as any;
 
     console.log('[parseNfeXml] XML parseado com sucesso, estrutura:', Object.keys(result));
 

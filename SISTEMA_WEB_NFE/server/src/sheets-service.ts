@@ -21,6 +21,7 @@ class SheetsService {
   private auth: any;
   private sheets: any;
   private spreadsheetId: string;
+  private credentialsPath: string;
   private initialized = false;
 
   constructor() {
