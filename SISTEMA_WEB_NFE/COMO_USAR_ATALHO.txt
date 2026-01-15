@@ -1,0 +1,73 @@
+═══════════════════════════════════════════════════════════════
+  COMO USAR O ATALHO NA ÁREA DE TRABALHO
+═══════════════════════════════════════════════════════════════
+
+✅ ATALHO CRIADO COM SUCESSO!
+
+Nome do atalho: "Sistema Web NF-e.lnk"
+Localização: Área de Trabalho (Desktop)
+
+═══════════════════════════════════════════════════════════════
+  COMO USAR
+═══════════════════════════════════════════════════════════════
+
+1. Vá para sua ÁREA DE TRABALHO (Desktop)
+2. Procure pelo ícone: "Sistema Web NF-e"
+3. Dê DOIS CLIQUES no ícone
+4. O sistema será iniciado automaticamente!
+
+═══════════════════════════════════════════════════════════════
+  O QUE ACONTECE AO ABRIR
+═══════════════════════════════════════════════════════════════
+
+- Uma janela do terminal será aberta
+- O sistema verificará se tudo está configurado
+- Se necessário, instalará dependências automaticamente
+- Backend será iniciado na porta 3001
+- Frontend será iniciado na porta 5173
+- Navegador abrirá automaticamente com o sistema
+
+═══════════════════════════════════════════════════════════════
+  PRIMEIRA VEZ - SETUP NECESSÁRIO
+═══════════════════════════════════════════════════════════════
+
+Se for a primeira vez usando o sistema:
+
+1. Execute primeiro: SETUP_COMPLETO_AUTOMATICO.bat
+   (Está na pasta SISTEMA_WEB_NFE)
+
+2. Isso vai:
+   - Instalar todas as dependências
+   - Configurar o banco de dados
+   - Criar arquivo .env
+   - Executar migrações
+
+3. Depois disso, o atalho funcionará normalmente!
+
+═══════════════════════════════════════════════════════════════
+  RECRIAR ATALHO (SE NECESSÁRIO)
+═══════════════════════════════════════════════════════════════
+
+Se precisar recriar o atalho:
+
+1. Vá para a pasta: SISTEMA_WEB_NFE
+2. Execute: CRIAR_ATALHO_DESKTOP.bat
+   OU
+   Execute: CRIAR_ATALHO_DESKTOP.vbs
+
+═══════════════════════════════════════════════════════════════
+  PROBLEMAS COMUNS
+═══════════════════════════════════════════════════════════════
+
+❌ "Node.js não encontrado"
+   → Instale Node.js de: https://nodejs.org/
+
+❌ "Dependências não instaladas"
+   → Execute: SETUP_COMPLETO_AUTOMATICO.bat
+
+❌ "Erro ao iniciar"
+   → Verifique se as portas 3001 e 5173 estão livres
+   → Verifique se o .env está configurado
+   → Verifique se o banco MySQL está rodando
+
+═══════════════════════════════════════════════════════════════

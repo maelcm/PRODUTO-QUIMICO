@@ -1,0 +1,44 @@
+═══════════════════════════════════════════════════════════════
+  COMANDO SQL COMPLETO
+═══════════════════════════════════════════════════════════════
+
+Você está quase lá! Complete o comando:
+
+No MySQL, digite:
+
+CREATE DATABASE IF NOT EXISTS nfe_system;
+
+IMPORTANTE: Não esqueça o ponto e vírgula (;) no final!
+
+Depois pressione Enter.
+
+Você deve ver uma mensagem como:
+"Query OK, 1 row affected"
+
+Isso significa que o banco foi criado com sucesso!
+
+═══════════════════════════════════════════════════════════════
+  VERIFICAR SE CRIOU
+═══════════════════════════════════════════════════════════════
+
+Depois de criar, você pode verificar se o banco existe:
+
+SHOW DATABASES;
+
+Isso vai listar todos os bancos. Procure por "nfe_system" na lista.
+
+═══════════════════════════════════════════════════════════════
+  PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════════
+
+Depois de criar o banco:
+
+1. Saia do MySQL (digite: EXIT; ou pressione Ctrl+C)
+
+2. Verifique/edite o arquivo .env (PASSO 2)
+
+3. Execute: EXECUTAR_MIGRACOES.bat (PASSO 3)
+
+4. Inicie o sistema (PASSO 4)
+
+═══════════════════════════════════════════════════════════════

@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════════
+  COMO CRIAR O BANCO DE DADOS MYSQL
+═══════════════════════════════════════════════════════════════
+
+Como o MySQL não está no PATH do sistema, você precisa criar o banco
+manualmente usando uma das opções abaixo:
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 1: MySQL Workbench (MAIS FÁCIL)
+═══════════════════════════════════════════════════════════════
+
+1. Abra o MySQL Workbench
+2. Conecte ao seu servidor MySQL
+3. Execute o comando SQL abaixo:
+
+   CREATE DATABASE IF NOT EXISTS nfe_system;
+   
+4. Verifique se foi criado (aparecerá na lista de bancos)
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 2: Linha de Comando MySQL
+═══════════════════════════════════════════════════════════════
+
+1. Abra o Prompt de Comando ou PowerShell
+2. Navegue até a pasta do MySQL (exemplo):
+   
+   cd "C:\Program Files\MySQL\MySQL Server 8.0\bin"
+   
+   (Ajuste o caminho conforme sua instalação)
+
+3. Execute:
+   
+   mysql -u root -p
+   
+   (Digite sua senha quando solicitado)
+
+4. Execute o comando SQL:
+   
+   CREATE DATABASE IF NOT EXISTS nfe_system;
+   
+5. Verifique:
+   
+   SHOW DATABASES;
+   
+   (Deve aparecer 'nfe_system' na lista)
+
+6. Saia:
+   
+   EXIT;
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 3: phpMyAdmin ou Outro Gerenciador
+═══════════════════════════════════════════════════════════════
+
+1. Abra seu gerenciador de banco de dados
+2. Conecte ao MySQL
+3. Crie um novo banco de dados chamado: nfe_system
+4. Ou execute o SQL: CREATE DATABASE IF NOT EXISTS nfe_system;
+
+═══════════════════════════════════════════════════════════════
+  DEPOIS DE CRIAR O BANCO
+═══════════════════════════════════════════════════════════════
+
+1. Certifique-se de que o arquivo .env está configurado corretamente:
+   
+   DATABASE_URL=mysql://usuario:senha@localhost:3306/nfe_system
+   
+   Exemplo sem senha:
+   DATABASE_URL=mysql://root:@localhost:3306/nfe_system
+   
+   Exemplo com senha:
+   DATABASE_URL=mysql://root:minhasenha123@localhost:3306/nfe_system
+
+2. Execute as migrações:
+   
+   EXECUTAR_MIGRACOES.bat
+
+3. Isso criará todas as tabelas no banco de dados
+
+═══════════════════════════════════════════════════════════════
+  VERIFICAR SE FUNCIONOU
+═══════════════════════════════════════════════════════════════
+
+Após executar as migrações, verifique no MySQL Workbench se as
+seguintes tabelas foram criadas:
+
+- users
+- nfe_invoices
+- nfe_items
+- manual_products
+- stock_movements
+- daily_expenses
+
+═══════════════════════════════════════════════════════════════

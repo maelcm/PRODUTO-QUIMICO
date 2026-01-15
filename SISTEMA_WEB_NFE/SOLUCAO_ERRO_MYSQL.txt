@@ -1,0 +1,46 @@
+═══════════════════════════════════════════════════════════════
+  ERRO AO SALVAR NOTA - SOLUÇÃO
+═══════════════════════════════════════════════════════════════
+
+O erro acontece porque o MySQL não está configurado corretamente.
+
+Você tem 2 opções:
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 1: CONFIGURAR MYSQL (Recomendado)
+═══════════════════════════════════════════════════════════════
+
+1. Abra o arquivo: SISTEMA_WEB_NFE\.env
+
+2. Configure a senha do MySQL:
+   DATABASE_URL=mysql://root:SUA_SENHA@localhost:3306/nfe_system
+
+   (Substitua SUA_SENHA pela senha real do MySQL)
+
+3. Reinicie o sistema
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 2: USAR GOOGLE SHEETS (Mais Fácil)
+═══════════════════════════════════════════════════════════════
+
+1. Abra o arquivo: SISTEMA_WEB_NFE\.env
+
+2. Adicione estas linhas:
+   USE_GOOGLE_SHEETS=true
+   GOOGLE_SHEETS_ID=seu_id_da_planilha
+   GOOGLE_CREDENTIALS_PATH=credentials.json
+
+3. Copie o arquivo credentials.json do sistema antigo para:
+   SISTEMA_WEB_NFE\credentials.json
+
+4. Compartilhe sua planilha do Google Sheets com o email
+   da Service Account (está no credentials.json)
+
+5. Reinicie o sistema
+
+═══════════════════════════════════════════════════════════════
+
+RECOMENDAÇÃO: Use a Opção 2 (Google Sheets) se você já
+tem o sistema antigo funcionando com Google Sheets.
+
+═══════════════════════════════════════════════════════════════

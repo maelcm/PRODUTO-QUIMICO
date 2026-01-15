@@ -1,0 +1,40 @@
+========================================
+  COMO CRIAR ATALHO NA AREA DE TRABALHO
+========================================
+
+METODO 1 - AUTOMATICO (Recomendado):
+-------------------------------------
+1. De um duplo clique no arquivo: criar_atalho_desktop.vbs
+2. O atalho sera criado automaticamente na area de trabalho
+3. Nome do atalho: "Smart Inventory System.lnk"
+
+
+METODO 2 - MANUAL:
+------------------
+1. Vá para a pasta do projeto: C:\Users\Info\PRODUTO QUIMICO
+2. Clique com botao direito no arquivo "INICIAR_SISTEMA.bat"
+3. Selecione "Criar atalho"
+4. Arraste o atalho criado para a area de trabalho
+5. Renomeie para "Smart Inventory System" (opcional)
+
+
+METODO 3 - PELO MENU INICIAR:
+------------------------------
+1. Clique com botao direito no arquivo "INICIAR_SISTEMA.bat"
+2. Selecione "Fixar na Tela Inicial" ou "Fixar na barra de tarefas"
+3. O sistema ficara acessivel diretamente
+
+
+COMO USAR:
+----------
+- Duplo clique no atalho "Smart Inventory System"
+- O sistema abrira automaticamente no navegador
+- Uma janela preta aparecera - NAO FECHE ELA (e onde o sistema esta rodando)
+- Para parar o sistema, feche a janela preta ou pressione Ctrl+C
+
+
+OBSERVACOES:
+-----------
+- O sistema usa a porta 8501 por padrao
+- Se a porta estiver ocupada, o Streamlit usara a proxima porta disponivel (8502, 8503, etc)
+- A primeira vez pode demorar alguns segundos para carregar

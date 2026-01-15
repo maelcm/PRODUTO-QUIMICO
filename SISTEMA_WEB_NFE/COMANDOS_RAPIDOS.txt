@@ -1,0 +1,62 @@
+═══════════════════════════════════════════════════════════════
+  COMANDOS RÁPIDOS - SISTEMA WEB NF-e
+═══════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANTE: Sempre execute os comandos estando na pasta:
+   C:\Users\Info\PRODUTO QUIMICO\SISTEMA_WEB_NFE
+
+═══════════════════════════════════════════════════════════════
+  NAVEGAR PARA O DIRETÓRIO CORRETO
+═══════════════════════════════════════════════════════════════
+
+No PowerShell:
+   cd "C:\Users\Info\PRODUTO QUIMICO\SISTEMA_WEB_NFE"
+
+OU simplesmente (se já estiver na raiz):
+   cd SISTEMA_WEB_NFE
+
+═══════════════════════════════════════════════════════════════
+  COMANDOS PRINCIPAIS
+═══════════════════════════════════════════════════════════════
+
+1. Verificar Setup:
+   .\VERIFICAR_SETUP.bat
+
+2. Instalar Dependências:
+   .\INSTALAR_TUDO.bat
+
+3. Executar Migrações do Banco:
+   .\EXECUTAR_MIGRACOES.bat
+   
+   OU manualmente:
+   cd server
+   npm run db:push
+   cd ..
+
+4. Iniciar Sistema:
+   npm run dev
+   
+   OU:
+   .\INICIAR_SISTEMA.bat
+
+═══════════════════════════════════════════════════════════════
+  ESTRUTURA DE PASTAS
+═══════════════════════════════════════════════════════════════
+
+SISTEMA_WEB_NFE/          ← Você precisa estar AQUI!
+├── server/               ← Servidor Node.js
+├── client/               ← Frontend React
+├── drizzle/              ← Schema do banco
+└── package.json          ← Scripts principais
+
+═══════════════════════════════════════════════════════════════
+  VERIFICAR SE ESTÁ NO LUGAR CERTO
+═══════════════════════════════════════════════════════════════
+
+Execute:
+   dir package.json
+
+Se aparecer o arquivo, você está no lugar certo!
+Se der erro, você está no lugar errado!
+
+═══════════════════════════════════════════════════════════════

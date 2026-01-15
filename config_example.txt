@@ -1,0 +1,9 @@
+# Copie este arquivo para .env e preencha com suas credenciais
+
+# OpenAI API Configuration
+OPENAI_API_KEY=sua_chave_openai_aqui
+
+# Google Sheets Configuration
+GOOGLE_SHEETS_ID=id_da_sua_planilha_google_sheets
+GOOGLE_SHEETS_WORKSHEET=Estoque
+GOOGLE_CREDENTIALS_PATH=credentials.json

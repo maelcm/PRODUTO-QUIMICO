@@ -1,0 +1,51 @@
+═══════════════════════════════════════════════════════════════
+  ✅ CONFIGURAÇÃO DO GOOGLE SHEETS CONCLUÍDA!
+═══════════════════════════════════════════════════════════════
+
+O sistema foi configurado para usar a MESMA PLANILHA do sistema antigo.
+
+═══════════════════════════════════════════════════════════════
+  O QUE FOI FEITO
+═══════════════════════════════════════════════════════════════
+
+✅ credentials.json copiado
+✅ .env configurado com:
+   - USE_GOOGLE_SHEETS=true
+   - GOOGLE_SHEETS_ID=1HMFh0SUyK_i4EkEsLYvoao_0V5jZCZGqvSHpfNoEM9I
+   - GOOGLE_CREDENTIALS_PATH=credentials.json
+
+═══════════════════════════════════════════════════════════════
+  ÚLTIMO PASSO IMPORTANTE
+═══════════════════════════════════════════════════════════════
+
+⚠️  COMPARTILHE A PLANILHA COM O EMAIL DA SERVICE ACCOUNT:
+
+1. Abra o arquivo: credentials.json
+2. Procure por "client_email"
+   (exemplo: service-account@projeto.iam.gserviceaccount.com)
+3. Abra sua planilha do Google Sheets
+4. Clique em "Compartilhar"
+5. Cole o email da Service Account
+6. Dê permissão de "Editor"
+7. Clique em "Enviar"
+
+═══════════════════════════════════════════════════════════════
+  PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════════
+
+1. Compartilhe a planilha (passo acima)
+2. Execute: INICIAR_SISTEMA.bat
+3. O sistema deve iniciar e salvar dados no Google Sheets
+
+═══════════════════════════════════════════════════════════════
+
+NOTA: O sistema criará novas abas (worksheets) na mesma planilha:
+- NF-e_Invoices
+- NF-e_Items
+- Manual_Products
+- Daily_Expenses
+- Users
+
+Estas são abas separadas, não vão misturar com o sistema antigo.
+
+═══════════════════════════════════════════════════════════════

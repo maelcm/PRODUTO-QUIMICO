@@ -1,0 +1,31 @@
+═══════════════════════════════════════════════════════════════
+  CONFIGURAÇÃO RÁPIDA - GOOGLE SHEETS
+═══════════════════════════════════════════════════════════════
+
+Para usar a MESMA PLANILHA do sistema antigo:
+
+═══════════════════════════════════════════════════════════════
+
+1. EXECUTE: CONFIGURAR_GOOGLE_SHEETS.bat
+
+   (Este script faz tudo automaticamente!)
+
+═══════════════════════════════════════════════════════════════
+
+OU se preferir fazer manualmente:
+
+1. Copie credentials.json do sistema antigo para esta pasta
+2. Abra .env e adicione:
+   
+   USE_GOOGLE_SHEETS=true
+   GOOGLE_SHEETS_ID=seu_id_aqui
+   GOOGLE_CREDENTIALS_PATH=credentials.json
+
+3. Compartilhe a planilha com o email da Service Account
+   (o email está no credentials.json, campo "client_email")
+
+═══════════════════════════════════════════════════════════════
+
+DEPOIS: Execute INICIAR_SISTEMA.bat
+
+═══════════════════════════════════════════════════════════════

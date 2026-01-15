@@ -1,0 +1,39 @@
+═══════════════════════════════════════════════════════════════
+  COMO VER OS LOGS DO SERVIDOR
+═══════════════════════════════════════════════════════════════
+
+Quando você executar o sistema (INICIAR_SISTEMA.bat), uma janela
+preta será aberta mostrando os logs do servidor.
+
+IMPORTANTE: Preste atenção nessa janela quando tentar processar
+um XML. Os logs vão mostrar exatamente o que está acontecendo.
+
+═══════════════════════════════════════════════════════════════
+  O QUE PROCURAR NOS LOGS
+═══════════════════════════════════════════════════════════════
+
+1. Quando o servidor inicia, você deve ver:
+   ✅ "🚀 Servidor rodando na porta 3001"
+   ✅ "📡 tRPC endpoint: http://localhost:3001/trpc"
+
+2. Quando você tentar processar um XML, procure por:
+   - [parseXml] Iniciando processamento do XML...
+   - [parseNfeXml] Iniciando parsing do XML...
+   - [parseNfeXml] XML parseado com sucesso...
+   - OU mensagens de ERRO (❌)
+
+3. Se aparecer algum erro, anote TUDO que aparecer, incluindo:
+   - Mensagens de erro completas
+   - Stack traces (linhas de código)
+   - Mensagens sobre banco de dados
+   - Mensagens sobre XML
+
+═══════════════════════════════════════════════════════════════
+  PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════════
+
+1. Abra o sistema (INICIAR_SISTEMA.bat)
+2. Observe a janela preta do servidor
+3. Tente processar um XML
+4. Copie TODAS as mensagens que aparecerem na janela do servidor
+5. Me envie essas mensagens para eu poder ajudar

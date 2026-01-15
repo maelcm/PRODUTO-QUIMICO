@@ -1,0 +1,37 @@
+═══════════════════════════════════════════════════════════════
+  CONFIGURAR GOOGLE SHEETS PARA O SISTEMA WEB NF-e
+═══════════════════════════════════════════════════════════════
+
+Para usar o Google Sheets ao invés de MySQL, você precisa:
+
+1. OBTER O CREDENTIALS.JSON
+   - Use o mesmo arquivo credentials.json do sistema antigo (Python)
+   - Ou crie um novo em: https://console.cloud.google.com/
+   - Copie o arquivo para: SISTEMA_WEB_NFE\credentials.json
+
+2. OBTER O ID DA PLANILHA
+   - Abra sua planilha do Google Sheets
+   - O ID está na URL: docs.google.com/spreadsheets/d/ID_AQUI/edit
+   - Copie o ID (parte entre /d/ e /edit)
+
+3. CONFIGURAR O .env
+   - Abra: SISTEMA_WEB_NFE\.env
+   - Adicione as linhas:
+     GOOGLE_SHEETS_ID=seu_id_aqui
+     GOOGLE_CREDENTIALS_PATH=credentials.json
+
+4. COMPARTILHAR A PLANILHA
+   - Abra o arquivo credentials.json
+   - Procure por "client_email" (exemplo: service-account@projeto.iam.gserviceaccount.com)
+   - Compartilhe sua planilha do Google Sheets com esse email
+   - Dê permissão de "Editor"
+
+5. REINICIAR O SISTEMA
+   - Feche o sistema atual
+   - Execute: INICIAR_SISTEMA.bat novamente
+
+═══════════════════════════════════════════════════════════════
+
+NOTA: A adaptação completa ainda está em desenvolvimento.
+Por enquanto, o sistema ainda usa MySQL. A integração com
+Google Sheets está sendo implementada.

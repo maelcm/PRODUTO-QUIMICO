@@ -1,0 +1,84 @@
+═══════════════════════════════════════════════════════════════
+  INSTRUÇÕES PARA ACESSAR O SISTEMA WEB NF-e
+═══════════════════════════════════════════════════════════════
+
+📍 LOCALIZAÇÃO DO SISTEMA:
+   O sistema web está na pasta: SISTEMA_WEB_NFE
+   
+   Caminho completo:
+   C:\Users\Info\PRODUTO QUIMICO\SISTEMA_WEB_NFE
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 1: USAR SCRIPTS .BAT (MAIS FÁCIL)
+═══════════════════════════════════════════════════════════════
+
+1. Abra o Windows Explorer
+2. Navegue até: C:\Users\Info\PRODUTO QUIMICO\SISTEMA_WEB_NFE
+3. Dê duplo clique em: INSTALAR_TUDO.bat
+4. Depois, dê duplo clique em: INICIAR_SISTEMA.bat
+
+OU execute na raiz do projeto:
+   IR_PARA_SISTEMA_WEB.bat
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 2: VIA TERMINAL/POWERSHELL
+═══════════════════════════════════════════════════════════════
+
+No PowerShell, execute:
+
+cd "C:\Users\Info\PRODUTO QUIMICO\SISTEMA_WEB_NFE"
+
+Depois execute os comandos:
+
+# Verificar setup
+.\VERIFICAR_SETUP.bat
+
+# Instalar dependências
+.\INSTALAR_TUDO.bat
+
+# Iniciar sistema
+.\INICIAR_SISTEMA.bat
+
+═══════════════════════════════════════════════════════════════
+  COMANDOS MANUAIS (SE NECESSÁRIO)
+═══════════════════════════════════════════════════════════════
+
+cd "C:\Users\Info\PRODUTO QUIMICO\SISTEMA_WEB_NFE"
+
+# Instalar dependências
+npm install
+cd server
+npm install
+cd ../client
+npm install
+cd ..
+
+# Executar migrações do banco
+cd server
+npm run db:push
+cd ..
+
+# Iniciar sistema
+npm run dev
+
+═══════════════════════════════════════════════════════════════
+  ANTES DE INICIAR
+═══════════════════════════════════════════════════════════════
+
+✅ Node.js instalado (verifique com: node --version)
+✅ MySQL instalado e rodando
+✅ Banco de dados criado: CREATE DATABASE nfe_system;
+✅ Arquivo .env configurado (copie de .env.example)
+✅ Dependências instaladas
+✅ Migrações executadas
+
+═══════════════════════════════════════════════════════════════
+  AJUDA
+═══════════════════════════════════════════════════════════════
+
+Veja os arquivos na pasta SISTEMA_WEB_NFE:
+- GUIA_RAPIDO.md - Guia detalhado
+- COMECAR_USAR.md - Como começar a usar
+- README.md - Documentação completa
+
+═══════════════════════════════════════════════════════════════

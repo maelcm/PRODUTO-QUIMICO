@@ -1,0 +1,5 @@
+[tool.basedpyright]
+reportMissingImports = false
+reportMissingModuleSource = false
+pythonVersion = "3.8"
+typeCheckingMode = "basic"

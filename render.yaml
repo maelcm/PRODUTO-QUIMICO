@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: nfe-backend
+    env: node
+    plan: free
+    rootDir: SISTEMA_WEB_NFE/server
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: USE_GOOGLE_SHEETS
+        value: "true"
+      - key: GOOGLE_SHEETS_ID
+        sync: false
+      - key: GOOGLE_CREDENTIALS_PATH
+        value: "/etc/secrets/credentials.json"
+      - key: CLIENT_URL
+        sync: false
+      - key: OCR_API_URL
+        sync: false
+
+  - type: web
+    name: nfe-ocr
+    env: python
+    plan: free
+    rootDir: api_ocr
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.8"
+      - key: OPENAI_API_KEY
+        sync: false

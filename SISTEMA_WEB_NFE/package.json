@@ -1,0 +1,33 @@
+{
+  "name": "sistema-nfe-produtos-quimicos",
+  "version": "1.0.0",
+  "description": "Sistema completo de cadastro de notas fiscais e rastreabilidade de produtos químicos",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd client && npm run build",
+    "db:push": "cd server && npx drizzle-kit push",
+    "db:studio": "cd server && npx drizzle-kit studio",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test"
+  },
+  "keywords": [
+    "nfe",
+    "produtos-quimicos",
+    "rastreabilidade",
+    "estoque"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.1",
+    "mysql2": "^3.16.0"
+  }
+}

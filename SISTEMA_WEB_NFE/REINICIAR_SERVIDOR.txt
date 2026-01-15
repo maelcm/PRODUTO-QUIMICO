@@ -1,0 +1,39 @@
+═══════════════════════════════════════════════════════════════
+  ⚠️  REINICIE O SERVIDOR AGORA!
+═══════════════════════════════════════════════════════════════
+
+O código foi corrigido para carregar o .env corretamente,
+mas o servidor precisa ser REINICIADO para aplicar as mudanças.
+
+═══════════════════════════════════════════════════════════════
+  COMO REINICIAR
+═══════════════════════════════════════════════════════════════
+
+1. Na janela do terminal onde o servidor está rodando:
+   - Pressione Ctrl+C para parar o servidor
+
+2. Execute novamente:
+   INICIAR_SISTEMA.bat
+
+═══════════════════════════════════════════════════════════════
+  O QUE FOI CORRIGIDO
+═══════════════════════════════════════════════════════════════
+
+✅ routers.ts agora carrega o .env ANTES de verificar
+   USE_GOOGLE_SHEETS
+
+✅ Logs adicionados para debug:
+   - [Routers] USE_GOOGLE_SHEETS: true/false
+   - [Routers] process.env.USE_GOOGLE_SHEETS: valor
+
+═══════════════════════════════════════════════════════════════
+  APÓS REINICIAR
+═══════════════════════════════════════════════════════════════
+
+Você deve ver nos logs:
+  [Routers] USE_GOOGLE_SHEETS: true
+  [Routers] ✅ Usando Google Sheets como banco de dados
+
+Se ainda aparecer "Usando MySQL", verifique o arquivo .env
+
+═══════════════════════════════════════════════════════════════

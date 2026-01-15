@@ -1,0 +1,161 @@
+═══════════════════════════════════════════════════════════════
+  PASSO A PASSO SIMPLES - SISTEMA WEB NF-e
+═══════════════════════════════════════════════════════════════
+
+✅ JÁ ESTÁ PRONTO:
+- Arquivo .env criado
+- Dependências instaladas
+- Código configurado
+
+═══════════════════════════════════════════════════════════════
+  PASSO 1: CRIAR O BANCO DE DADOS
+═══════════════════════════════════════════════════════════════
+
+Você precisa criar o banco de dados no MySQL.
+
+OPÇÃO MAIS FÁCIL (MySQL Workbench):
+
+1. Abra o programa "MySQL Workbench"
+   
+2. Clique para conectar ao seu servidor MySQL
+   (geralmente aparece "Local instance MySQL..." ou similar)
+
+3. Quando abrir a tela principal, você verá uma área para 
+   escrever código SQL no topo
+
+4. Digite exatamente isto na área de código:
+   
+   CREATE DATABASE IF NOT EXISTS nfe_system;
+
+5. Clique no botão que tem um raio (⚡) para executar
+   OU pressione Ctrl+Enter
+
+6. Você deve ver uma mensagem de sucesso em verde
+   (algo como "Success" ou "Query OK")
+
+7. Pronto! O banco foi criado
+
+═══════════════════════════════════════════════════════════════
+  PASSO 2: VERIFICAR/EDITAR O ARQUIVO .env
+═══════════════════════════════════════════════════════════════
+
+1. Vá para a pasta: SISTEMA_WEB_NFE
+
+2. Abra o arquivo chamado: .env
+   (Pode abrir com Bloco de Notas)
+
+3. Verifique a linha que começa com: DATABASE_URL=
+
+4. Se seu MySQL NÃO TEM SENHA:
+   Já está correto, não precisa mudar nada!
+   DATABASE_URL=mysql://root:@localhost:3306/nfe_system
+
+5. Se seu MySQL TEM SENHA:
+   Altere para (substitua SUA_SENHA pela senha real):
+   DATABASE_URL=mysql://root:SUA_SENHA@localhost:3306/nfe_system
+   
+   Exemplo: DATABASE_URL=mysql://root:minhasenha123@localhost:3306/nfe_system
+
+6. Salve o arquivo (Ctrl+S)
+
+═══════════════════════════════════════════════════════════════
+  PASSO 3: EXECUTAR AS MIGRAÇÕES (CRIAR TABELAS)
+═══════════════════════════════════════════════════════════════
+
+1. Vá para a pasta: SISTEMA_WEB_NFE
+
+2. Dê dois cliques no arquivo:
+   EXECUTAR_MIGRACOES.bat
+
+3. Uma janela preta vai abrir
+
+4. Ela vai perguntar se você quer continuar
+   Digite: S
+   Pressione Enter
+
+5. O sistema vai criar todas as tabelas no banco de dados
+
+6. Se der tudo certo, você verá:
+   "MIGRAÇÕES EXECUTADAS COM SUCESSO!"
+
+7. Se der erro, veja a mensagem:
+   - Se falar "banco não encontrado": volte ao PASSO 1
+   - Se falar "usuário/senha incorretos": volte ao PASSO 2
+   - Se falar "MySQL não está rodando": inicie o MySQL primeiro
+
+═══════════════════════════════════════════════════════════════
+  PASSO 4: INICIAR O SISTEMA
+═══════════════════════════════════════════════════════════════
+
+OPÇÃO 1: Usando o Atalho (MAIS FÁCIL)
+
+1. Vá para a Área de Trabalho (Desktop)
+
+2. Procure o ícone: "Sistema Web NF-e"
+
+3. Dê DOIS CLIQUES no ícone
+
+4. Uma janela vai abrir e o sistema vai iniciar
+
+5. Quando aparecer "Servidor rodando", o navegador vai abrir
+   automaticamente
+
+OPÇÃO 2: Usando o Script
+
+1. Vá para a pasta: SISTEMA_WEB_NFE
+
+2. Dê dois cliques no arquivo:
+   INICIAR_SISTEMA.bat
+
+3. O sistema vai iniciar
+
+═══════════════════════════════════════════════════════════════
+  COMO USAR O SISTEMA
+═══════════════════════════════════════════════════════════════
+
+Depois que o sistema iniciar:
+
+1. O navegador vai abrir automaticamente
+   (ou abra manualmente: http://localhost:5173)
+
+2. Você verá a tela inicial do sistema
+
+3. Use os menus para:
+   - Cadastrar Notas Fiscais
+   - Ver Rastreabilidade
+   - Controlar Estoque
+   - etc.
+
+4. Para PARAR o sistema:
+   - Vá na janela preta que está aberta
+   - Pressione: Ctrl+C
+   - Feche a janela
+
+═══════════════════════════════════════════════════════════════
+  PROBLEMAS COMUNS
+═══════════════════════════════════════════════════════════════
+
+❌ "Banco de dados não encontrado"
+   → Você não criou o banco (PASSO 1)
+
+❌ "Erro ao conectar ao banco"
+   → Verifique o DATABASE_URL no arquivo .env (PASSO 2)
+   → Verifique se o MySQL está rodando
+
+❌ "Porta já em uso"
+   → Feche outras aplicações
+   → Reinicie o computador (se necessário)
+
+❌ "Node.js não encontrado"
+   → Instale o Node.js de: https://nodejs.org/
+
+═══════════════════════════════════════════════════════════════
+  RESUMO RÁPIDO
+═══════════════════════════════════════════════════════════════
+
+1. Criar banco: MySQL Workbench → CREATE DATABASE nfe_system;
+2. Verificar .env: Se tem senha MySQL, editar DATABASE_URL
+3. Executar: EXECUTAR_MIGRACOES.bat
+4. Iniciar: Usar atalho "Sistema Web NF-e" na área de trabalho
+
+═══════════════════════════════════════════════════════════════

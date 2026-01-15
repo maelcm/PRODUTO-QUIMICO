@@ -1,0 +1,67 @@
+═══════════════════════════════════════════════════════════════
+  CONFIGURAR GOOGLE SHEETS - SISTEMA WEB NF-e
+═══════════════════════════════════════════════════════════════
+
+Para usar a MESMA PLANILHA do sistema antigo, siga estes passos:
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 1: AUTOMÁTICO (Recomendado)
+═══════════════════════════════════════════════════════════════
+
+1. Execute o script: CONFIGURAR_GOOGLE_SHEETS.bat
+
+   Este script irá:
+   - Copiar credentials.json do sistema antigo
+   - Ler o GOOGLE_SHEETS_ID do sistema antigo
+   - Configurar o arquivo .env automaticamente
+
+═══════════════════════════════════════════════════════════════
+  OPÇÃO 2: MANUAL
+═══════════════════════════════════════════════════════════════
+
+1. COPIAR CREDENTIALS.JSON
+   - Copie o arquivo: credentials.json
+   - Do sistema antigo para: SISTEMA_WEB_NFE\credentials.json
+
+2. OBTER ID DA PLANILHA
+   - Abra sua planilha do Google Sheets
+   - O ID está na URL: docs.google.com/spreadsheets/d/ID_AQUI/edit
+   - Copie o ID (parte entre /d/ e /edit)
+
+3. CONFIGURAR .env
+   - Abra ou crie: SISTEMA_WEB_NFE\.env
+   - Adicione estas linhas:
+     
+     USE_GOOGLE_SHEETS=true
+     GOOGLE_SHEETS_ID=seu_id_aqui
+     GOOGLE_CREDENTIALS_PATH=credentials.json
+     PORT=3001
+     CLIENT_URL=http://localhost:5173
+
+4. COMPARTILHAR PLANILHA
+   - Abra credentials.json
+   - Procure por "client_email"
+   - Compartilhe sua planilha do Google Sheets com esse email
+   - Dê permissão de "Editor"
+
+═══════════════════════════════════════════════════════════════
+  IMPORTANTE
+═══════════════════════════════════════════════════════════════
+
+⚠️  O sistema criará novas planilhas na MESMA planilha do Google:
+   - NF-e_Invoices
+   - NF-e_Items
+   - Manual_Products
+   - Daily_Expenses
+   - Users
+
+   Estas são abas/worksheets DIFERENTES na mesma planilha.
+
+═══════════════════════════════════════════════════════════════
+  APÓS CONFIGURAR
+═══════════════════════════════════════════════════════════════
+
+1. Execute: INICIAR_SISTEMA.bat
+2. O sistema deve iniciar e salvar dados no Google Sheets
+
+═══════════════════════════════════════════════════════════════
