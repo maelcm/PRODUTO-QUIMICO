@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Sistema de NF-e</title>
+  <script>
+    // Redirecionar para index.html preservando a URL
+    // Isso permite que o React Router funcione corretamente
+    sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
+    location.replace(location.origin + location.pathname.split('/').slice(0, -1).join('/') + '/');
+  </script>
+</head>
+<body></body>
+</html>
