@@ -7,6 +7,7 @@ on:
     paths:
       - 'SISTEMA_WEB_NFE/client/**'
       - '.github/workflows/deploy-frontend.yml'
+      - 'SISTEMA_WEB_NFE/server/**'
   workflow_dispatch:
 
 permissions:
