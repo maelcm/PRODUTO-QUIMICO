@@ -67,7 +67,9 @@ export default function StockControl() {
 
   // Calcular valor total automaticamente
   useEffect(() => {
-    if (!quantityUsed || !batches || selectedBatches.size === 0) {
+    const qty = Number(quantityUsed);
+    
+    if (!qty || isNaN(qty) || qty <= 0 || !batches || selectedBatches.size === 0) {
       setValue('totalExpense', '');
       return;
     }
@@ -84,13 +86,27 @@ export default function StockControl() {
     }
 
     // Calcular preço médio ponderado
-    const totalQuantity = selectedBatchesData.reduce((sum, b) => sum + Number(b.quantityAvailable), 0);
-    const weightedSum = selectedBatchesData.reduce((sum, b) => {
-      const weight = Number(b.quantityAvailable) / totalQuantity;
-      return sum + (Number(b.unitPrice) * weight);
-    }, 0);
+    let totalQuantity = 0;
+    let weightedSum = 0;
 
-    const total = Number(quantityUsed) * weightedSum;
+    for (const batch of selectedBatchesData) {
+      const qtyAvailable = Number(batch.quantityAvailable) || 0;
+      const price = Number(batch.unitPrice) || 0;
+      
+      if (qtyAvailable > 0 && price > 0) {
+        totalQuantity += qtyAvailable;
+        weightedSum += qtyAvailable * price;
+      }
+    }
+
+    if (totalQuantity === 0) {
+      setValue('totalExpense', '0.00');
+      return;
+    }
+
+    const averagePrice = weightedSum / totalQuantity;
+    const total = qty * averagePrice;
+    
     setValue('totalExpense', total.toFixed(2));
   }, [quantityUsed, batches, selectedBatches, setValue]);
 
