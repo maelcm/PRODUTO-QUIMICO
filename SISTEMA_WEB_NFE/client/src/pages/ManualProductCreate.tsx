@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Save } from 'lucide-react';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   productName: z.string().min(1, 'Nome do produto é obrigatório'),
@@ -36,6 +37,13 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function ManualProductCreate() {
   const navigate = useNavigate();
+  
+  // Buscar nomes de produtos existentes
+  const { data: productNames } = trpc.products.getProductNames.useQuery();
+  
+  // Buscar todos os produtos para autocomplete
+  const { data: allProducts } = trpc.products.getAllProducts.useQuery();
+  
   const createMutation = trpc.products.createManual.useMutation({
     onSuccess: () => {
       alert('Produto cadastrado com sucesso!');
@@ -58,8 +66,32 @@ export default function ManualProductCreate() {
     },
   });
 
+  const productName = watch('productName');
   const quantity = watch('quantity');
   const unitPrice = watch('unitPrice');
+  
+  // Preencher automaticamente dados de produto existente
+  useEffect(() => {
+    if (!productName || !allProducts) return;
+    
+    // Buscar último produto com esse nome
+    const existingProduct = allProducts
+      .filter(p => p.productName.toLowerCase() === productName.toLowerCase())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    
+    if (existingProduct) {
+      // Preencher campos automaticamente
+      if (existingProduct.supplier) {
+        setValue('supplier', existingProduct.supplier);
+      }
+      if (existingProduct.unitPrice) {
+        setValue('unitPrice', existingProduct.unitPrice);
+      }
+      if (existingProduct.unitOfMeasure) {
+        setValue('unitOfMeasure', existingProduct.unitOfMeasure);
+      }
+    }
+  }, [productName, allProducts, setValue]);
 
   // Calcular total automaticamente
   const calculateTotal = () => {
@@ -86,13 +118,20 @@ export default function ManualProductCreate() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nome do Produto *
+                Nome do Produto * <span className="text-xs text-gray-500">(Digite para ver sugestões)</span>
               </label>
               <input
                 type="text"
                 {...register('productName')}
+                list="product-suggestions"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="Digite o nome do produto..."
               />
+              <datalist id="product-suggestions">
+                {productNames?.map((name, idx) => (
+                  <option key={idx} value={name} />
+                ))}
+              </datalist>
               {errors.productName && (
                 <p className="mt-1 text-sm text-red-600">{errors.productName.message}</p>
               )}
