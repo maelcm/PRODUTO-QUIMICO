@@ -317,12 +317,15 @@ export async function getOrCreateDefaultUser(): Promise<schema.User> {
     console.log('[getOrCreateDefaultUser] Usuário padrão não encontrado. Criando...');
     
     // Criar usuário padrão se não existir
+    const now = new Date();
     const newUser = {
       openId: 'default-user-' + Date.now(),
       name: 'Usuário Padrão',
       email: 'usuario@padrao.local',
       loginMethod: 'local',
       role: 'admin' as const,
+      createdAt: now,
+      updatedAt: now,
     };
 
     await db.insert(schema.users).values(newUser);
