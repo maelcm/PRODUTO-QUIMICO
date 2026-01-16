@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure } from './trpc';
-import { parseNfeXml } from './nfe-parser';
+import { router, publicProcedure, protectedProcedure } from './trpc.js';
+import { parseNfeXml } from './nfe-parser.js';
 import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

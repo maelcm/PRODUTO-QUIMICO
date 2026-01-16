@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
-import { appRouter } from './routers';
-import { createContext } from './context';
+import { appRouter } from './routers.js';
+import { createContext } from './context.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { config } from 'dotenv';

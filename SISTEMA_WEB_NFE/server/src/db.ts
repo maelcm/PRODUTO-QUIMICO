@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2';
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
-import * as schema from './drizzle/schema';
+import * as schema from './drizzle/schema.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { config } from 'dotenv';
