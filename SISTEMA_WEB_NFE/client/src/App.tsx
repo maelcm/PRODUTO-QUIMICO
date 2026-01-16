@@ -22,10 +22,13 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Para GitHub Pages, usar o basename do VITE_BASE_PATH
+  const basename = import.meta.env.VITE_BASE_PATH || '/';
+  
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <div className="min-h-screen bg-gray-50">
             <Routes>
               <Route path="/" element={<Home />} />
