@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Eye, Trash2, Search, Calendar } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 
 export default function NfeList() {
   const navigate = useNavigate();
@@ -119,7 +120,7 @@ export default function NfeList() {
                       {new Date(invoice.emissionDate).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      R$ {Number(invoice.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {formatCurrency(invoice.totalValue)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">

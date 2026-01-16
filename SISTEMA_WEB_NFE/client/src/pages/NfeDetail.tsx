@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Calendar, Building2, Hash, DollarSign } from 'lucide-react';
+import { formatCurrency, formatNumber } from '../lib/utils';
 
 export default function NfeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -76,7 +77,7 @@ export default function NfeDetail() {
             <div>
               <p className="text-sm text-gray-500">Valor Total</p>
               <p className="text-lg font-medium text-green-600">
-                R$ {Number(invoice.totalValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {formatCurrency(invoice.totalValue)}
               </p>
             </div>
           </div>
@@ -114,16 +115,16 @@ export default function NfeDetail() {
                     {item.productName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {Number(item.quantity).toLocaleString('pt-BR')}
+                    {formatNumber(item.quantity, 3)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.unitOfMeasure}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    R$ {Number(item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {formatCurrency(item.unitPrice)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    R$ {Number(item.totalPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {formatCurrency(item.totalPrice)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.batchNumber || '-'}
