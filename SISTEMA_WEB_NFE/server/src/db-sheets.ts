@@ -268,6 +268,37 @@ function objectToRow(obj: any, headers: string[]): any[] {
 }
 
 /**
+ * Normalizar valor decimal pt-BR para formato JavaScript (ponto)
+ */
+function normalizeDecimalFromPtBr(value: any): string | null {
+  if (value === null || value === undefined || value === '') return null;
+  
+  let str = String(value).trim();
+  if (!str) return null;
+  
+  // Remover espaços
+  str = str.replace(/\s+/g, '');
+  
+  const hasComma = str.includes(',');
+  const hasDot = str.includes('.');
+  
+  if (hasComma && hasDot) {
+    // Formato pt-BR com milhar: 1.234,56 → 1234.56
+    str = str.replace(/\./g, '').replace(',', '.');
+  } else if (hasComma) {
+    // Apenas vírgula decimal: 123,45 → 123.45
+    str = str.replace(',', '.');
+  }
+  
+  // Validar se é um número válido
+  if (!/^[-+]?\d+(\.\d+)?$/.test(str)) {
+    return null;
+  }
+  
+  return str;
+}
+
+/**
  * Converter linha de planilha para objeto
  */
 function rowToObject(row: any[], headers: string[]): any {
@@ -276,7 +307,15 @@ function rowToObject(row: any[], headers: string[]): any {
     const value = row[index] || '';
     // Usar mapeamento se existir, senão usar lowercase
     const key = HEADER_TO_KEY[header] || header.toLowerCase();
-    obj[key] = value === '' ? null : value;
+    
+    // Normalizar valores decimais (quantidade, preços)
+    if (header === 'Quantidade' || header === 'Valor_Unitario' || header === 'Valor_Total' || 
+        header === 'Quantidade_Usada' || header === 'Valor_Total_Gasto') {
+      const normalized = normalizeDecimalFromPtBr(value);
+      obj[key] = normalized !== null ? normalized : value;
+    } else {
+      obj[key] = value === '' ? null : value;
+    }
   });
   return obj;
 }
