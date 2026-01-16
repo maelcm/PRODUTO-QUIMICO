@@ -130,13 +130,20 @@ export const nfeRouter = router({
 
       // Criar itens - Google Sheets aceita strings, MySQL aceita Date
       const items = input.items.map((item) => {
+        // Validar e garantir valores numéricos válidos
+        const validateNumber = (val: any, defaultVal: string = '0'): string => {
+          const str = String(val || defaultVal);
+          const num = Number(str);
+          return !isNaN(num) && isFinite(num) ? str : defaultVal;
+        };
+
         const itemData: any = {
           invoiceId: invoice.id,
           productName: item.productName,
-          quantity: String(item.quantity),
+          quantity: validateNumber(item.quantity, '0'),
           unitOfMeasure: item.unitOfMeasure,
-          unitPrice: String(item.unitPrice),
-          totalPrice: String(item.totalPrice),
+          unitPrice: validateNumber(item.unitPrice, '0'),
+          totalPrice: validateNumber(item.totalPrice, '0'),
           batchNumber: item.batchNumber || null,
           expirationDate: item.expirationDate || null,
           manufacturingDate: item.manufacturingDate || null,

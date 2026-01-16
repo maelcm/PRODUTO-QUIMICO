@@ -292,12 +292,18 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
       cleanProductName = cleanProductName.replace(/VALIDADE[:\s]+\d{2}\/\d{2}\/\d{4}/gi, '').trim();
       cleanProductName = cleanProductName.replace(/\s+/g, ' ').trim(); // Remover espaços múltiplos
 
+      // Garantir que valores numéricos sejam válidos
+      const safeQuantity = quantity && !isNaN(Number(quantity)) ? quantity : '0';
+      const safeUnitPrice = unitPrice && !isNaN(Number(unitPrice)) ? String(unitPrice) : '0';
+      const safeTotalPrice = normalizeDecimalString(prod.vProd || prod.vTrib || prod.valorTotal || '0') || '0';
+      const validTotalPrice = safeTotalPrice && !isNaN(Number(safeTotalPrice)) ? safeTotalPrice : '0';
+
       return {
         productName: cleanProductName || productName, // Usar nome limpo, mas manter original se limpeza removê-lo todo
-        quantity: quantity,
+        quantity: safeQuantity,
         unitOfMeasure: prod.uCom || prod.uTrib || prod.unidade || 'UN',
-        unitPrice: String(unitPrice),
-        totalPrice: normalizeDecimalString(prod.vProd || prod.vTrib || prod.valorTotal || '0') || '0',
+        unitPrice: safeUnitPrice,
+        totalPrice: validTotalPrice,
         batchNumber,
         expirationDate,
         manufacturingDate,
