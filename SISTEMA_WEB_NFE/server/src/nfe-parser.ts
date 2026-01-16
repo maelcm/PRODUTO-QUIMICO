@@ -98,6 +98,12 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
     const emitterCNPJ = String(emit.CNPJ || emit.cnpj || emit.CPF || emit.cpf || '');
     const emissionDate = String(ide.dhEmi || ide.dEmi || ide.dataEmissao || '');
     const totalValue = String(total.vNF || total['vNF'] || total.valorTotal || '0');
+    
+    console.log('[parseNfeXml] Valores extraídos da nota:');
+    console.log('  invoiceNumber:', invoiceNumber);
+    console.log('  totalValue:', totalValue);
+    console.log('  total.vNF:', total.vNF);
+    console.log('  total object:', total);
 
     // Formatar data de emissão
     let formattedEmissionDate = emissionDate;
@@ -298,7 +304,7 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
       const safeTotalPrice = normalizeDecimalString(prod.vProd || prod.vTrib || prod.valorTotal || '0') || '0';
       const validTotalPrice = safeTotalPrice && !isNaN(Number(safeTotalPrice)) ? safeTotalPrice : '0';
 
-      return {
+      const itemResult = {
         productName: cleanProductName || productName, // Usar nome limpo, mas manter original se limpeza removê-lo todo
         quantity: safeQuantity,
         unitOfMeasure: prod.uCom || prod.uTrib || prod.unidade || 'UN',
@@ -309,6 +315,16 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
         manufacturingDate,
         ncm: prod.NCM || prod.codigoNCM || '',
       };
+      
+      console.log('[parseNfeXml] Item extraído:', {
+        product: itemResult.productName,
+        quantity: itemResult.quantity,
+        unitPrice: itemResult.unitPrice,
+        totalPrice: itemResult.totalPrice,
+        vProd: prod.vProd
+      });
+      
+      return itemResult;
     });
 
     return {
