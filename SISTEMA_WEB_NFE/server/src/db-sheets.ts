@@ -389,6 +389,14 @@ export async function getOrCreateDefaultUser() {
 
 export async function createNfeInvoice(data: any) {
   const now = new Date().toISOString();
+  
+  // Garantir que totalvalue seja um número válido
+  let totalValue = data.totalValue;
+  if (!totalValue || totalValue === '0' || totalValue === 0 || totalValue === '') {
+    console.warn('[createNfeInvoice] totalValue vazio ou zero, usando 0');
+    totalValue = '0';
+  }
+  
   const invoice = {
     id: invoiceIdCounter++,
     userid: data.userId,
@@ -397,11 +405,13 @@ export async function createNfeInvoice(data: any) {
     emittername: data.emitterName,
     emittercnpj: data.emitterCNPJ,
     emissiondate: data.emissionDate,
-    totalvalue: data.totalValue,
+    totalvalue: totalValue,
     xmlurl: data.xmlUrl || '',
     createdat: now,
     updatedat: now,
   };
+  
+  console.log('[createNfeInvoice] Salvando invoice:', { id: invoice.id, totalvalue: invoice.totalvalue });
 
   const headers = HEADERS.INVOICES;
   await sheetsService.appendRows(WORKSHEETS.INVOICES, [objectToRow(invoice, headers)]);
@@ -519,6 +529,7 @@ export async function createNfeItems(items: any[]) {
       const qty = Number(item.quantity) || 0;
       const price = Number(item.unitPrice) || 0;
       totalPrice = (qty * price).toFixed(2);
+      console.log(`[createNfeItems] Calculando totalPrice: ${qty} x ${price} = ${totalPrice}`);
     }
     
     const rowItem = {
@@ -536,6 +547,9 @@ export async function createNfeItems(items: any[]) {
       createdat: now,
       updatedat: now,
     };
+    
+    console.log('[createNfeItems] Item:', { productname: rowItem.productname, totalprice: rowItem.totalprice, unitprice: rowItem.unitprice, quantity: rowItem.quantity });
+    
     return objectToRow(rowItem, headers);
   });
 
