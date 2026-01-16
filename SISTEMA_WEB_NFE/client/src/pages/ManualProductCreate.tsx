@@ -72,24 +72,37 @@ export default function ManualProductCreate() {
   
   // Preencher automaticamente dados de produto existente
   useEffect(() => {
-    if (!productName || !allProducts) return;
+    if (!productName || !allProducts || productName.length < 2) return;
     
-    // Buscar último produto com esse nome
-    const existingProduct = allProducts
-      .filter(p => p.productName.toLowerCase() === productName.toLowerCase())
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    // Buscar último produto com esse nome (case insensitive)
+    const existingProducts = allProducts.filter(p => 
+      p.productName && p.productName.toLowerCase() === productName.toLowerCase()
+    );
     
-    if (existingProduct) {
-      // Preencher campos automaticamente
-      if (existingProduct.supplier) {
-        setValue('supplier', existingProduct.supplier);
-      }
-      if (existingProduct.unitPrice) {
-        setValue('unitPrice', existingProduct.unitPrice);
-      }
-      if (existingProduct.unitOfMeasure) {
-        setValue('unitOfMeasure', existingProduct.unitOfMeasure);
-      }
+    if (existingProducts.length === 0) return;
+    
+    // Pegar o mais recente
+    const existingProduct = existingProducts.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    })[0];
+    
+    console.log('Produto encontrado:', existingProduct);
+    
+    // Preencher campos automaticamente
+    if (existingProduct.supplier) {
+      setValue('supplier', String(existingProduct.supplier));
+    }
+    
+    if (existingProduct.unitPrice) {
+      const price = String(existingProduct.unitPrice);
+      setValue('unitPrice', price);
+      console.log('Preço preenchido:', price);
+    }
+    
+    if (existingProduct.unitOfMeasure) {
+      setValue('unitOfMeasure', String(existingProduct.unitOfMeasure));
     }
   }, [productName, allProducts, setValue]);
 
