@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -54,7 +54,7 @@ export default function StockControl() {
     },
   });
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ExpenseForm>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       expenseDate: new Date().toISOString().split('T')[0],
@@ -62,6 +62,37 @@ export default function StockControl() {
       totalExpense: '',
     },
   });
+
+  const quantityUsed = watch('quantityUsed');
+
+  // Calcular valor total automaticamente
+  useEffect(() => {
+    if (!quantityUsed || !batches || selectedBatches.size === 0) {
+      setValue('totalExpense', '');
+      return;
+    }
+
+    // Pegar o preço unitário médio dos lotes selecionados
+    const selectedBatchesData = batches.filter(b => {
+      const batchKey = b.batchNumber || 'SEM_LOTE';
+      return selectedBatches.has(batchKey);
+    });
+
+    if (selectedBatchesData.length === 0) {
+      setValue('totalExpense', '');
+      return;
+    }
+
+    // Calcular preço médio ponderado
+    const totalQuantity = selectedBatchesData.reduce((sum, b) => sum + Number(b.quantityAvailable), 0);
+    const weightedSum = selectedBatchesData.reduce((sum, b) => {
+      const weight = Number(b.quantityAvailable) / totalQuantity;
+      return sum + (Number(b.unitPrice) * weight);
+    }, 0);
+
+    const total = Number(quantityUsed) * weightedSum;
+    setValue('totalExpense', total.toFixed(2));
+  }, [quantityUsed, batches, selectedBatches, setValue]);
 
   const toggleBatch = (batchKey: string) => {
     const newSelected = new Set(selectedBatches);
@@ -408,13 +439,14 @@ export default function StockControl() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Valor Total *
+                    Valor Total (Calculado Automaticamente)
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
                     {...register('totalExpense')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-semibold text-green-600"
+                    placeholder="R$ 0,00"
                   />
                   {errors.totalExpense && (
                     <p className="mt-1 text-sm text-red-600">{errors.totalExpense.message}</p>
