@@ -504,6 +504,14 @@ export async function createNfeItems(items: any[]) {
   const now = new Date().toISOString();
   
   const rows = items.map(item => {
+    // Calcular totalPrice se estiver vazio
+    let totalPrice = item.totalPrice;
+    if (!totalPrice || totalPrice === '0' || totalPrice === 0) {
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.unitPrice) || 0;
+      totalPrice = (qty * price).toFixed(2);
+    }
+    
     const rowItem = {
       id: itemIdCounter++,
       invoiceid: item.invoiceId,
@@ -511,7 +519,7 @@ export async function createNfeItems(items: any[]) {
       quantity: item.quantity,
       unitofmeasure: item.unitOfMeasure,
       unitprice: item.unitPrice,
-      totalprice: item.totalPrice,
+      totalprice: totalPrice,
       batchnumber: item.batchNumber || '',
       expirationdate: item.expirationDate || '',
       manufacturingdate: item.manufacturingDate || '',
