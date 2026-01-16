@@ -40,22 +40,32 @@ class SheetsService {
     if (this.initialized) return;
 
     try {
-      // Tentar encontrar credentials.json na raiz do projeto
-      const rootDir = join(__dirname, '../..');
-      const credentialsFullPath = join(rootDir, this.credentialsPath);
-      
-      console.log('[SheetsService] Tentando carregar credenciais de:', credentialsFullPath);
-
       let credentials;
-      try {
-        const credentialsFile = readFileSync(credentialsFullPath, 'utf8');
+      
+      // Verificar se o caminho é absoluto (ex: /etc/secrets/credentials.json no Render)
+      const isAbsolutePath = this.credentialsPath.startsWith('/') || this.credentialsPath.match(/^[A-Z]:\\/);
+      
+      if (isAbsolutePath) {
+        console.log('[SheetsService] Usando caminho absoluto:', this.credentialsPath);
+        const credentialsFile = readFileSync(this.credentialsPath, 'utf8');
         credentials = JSON.parse(credentialsFile);
-      } catch (error: any) {
-        // Tentar no diretório do servidor também
-        const serverCredentialsPath = join(__dirname, '..', this.credentialsPath);
-        console.log('[SheetsService] Tentando caminho alternativo:', serverCredentialsPath);
-        const credentialsFile = readFileSync(serverCredentialsPath, 'utf8');
-        credentials = JSON.parse(credentialsFile);
+      } else {
+        // Tentar encontrar credentials.json na raiz do projeto
+        const rootDir = join(__dirname, '../..');
+        const credentialsFullPath = join(rootDir, this.credentialsPath);
+        
+        console.log('[SheetsService] Tentando carregar credenciais de:', credentialsFullPath);
+
+        try {
+          const credentialsFile = readFileSync(credentialsFullPath, 'utf8');
+          credentials = JSON.parse(credentialsFile);
+        } catch (error: any) {
+          // Tentar no diretório do servidor também
+          const serverCredentialsPath = join(__dirname, '..', this.credentialsPath);
+          console.log('[SheetsService] Tentando caminho alternativo:', serverCredentialsPath);
+          const credentialsFile = readFileSync(serverCredentialsPath, 'utf8');
+          credentials = JSON.parse(credentialsFile);
+        }
       }
 
       this.auth = new google.auth.GoogleAuth({
