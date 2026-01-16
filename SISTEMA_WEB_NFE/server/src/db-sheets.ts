@@ -582,7 +582,7 @@ export async function getNfeItemsByInvoiceId(invoiceId: number) {
   for (let i = 1; i < rows.length; i++) {
     const item = rowToObject(rows[i], headers);
     if (parseInt(item.invoiceid) === invoiceId) {
-      items.push({
+      const itemData = {
         id: parseInt(item.id),
         invoiceId: parseInt(item.invoiceid),
         productName: item.productname,
@@ -596,7 +596,16 @@ export async function getNfeItemsByInvoiceId(invoiceId: number) {
         ncm: item.ncm || null,
         createdAt: item.createdat,
         updatedAt: item.updatedat,
+      };
+      
+      console.log('[getNfeItemsByInvoiceId] Item lido:', {
+        product: itemData.productName,
+        totalPrice: itemData.totalPrice,
+        totalprice_raw: item.totalprice,
+        item_object: item
       });
+      
+      items.push(itemData);
     }
   }
   return items;
