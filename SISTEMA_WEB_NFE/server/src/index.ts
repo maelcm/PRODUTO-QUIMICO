@@ -20,12 +20,12 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middlewares
-const allowedOrigins = [
+const allowedOrigins: string[] = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://maelcm.github.io',
   process.env.CLIENT_URL,
-].filter(Boolean);
+].filter((origin): origin is string => Boolean(origin));
 
 app.use(cors({
   origin: (origin, callback) => {
