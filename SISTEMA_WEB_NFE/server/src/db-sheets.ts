@@ -171,6 +171,9 @@ const HEADER_TO_KEY: Record<string, string> = {
   'Metodo_Login': 'loginmethod',
   'Perfil': 'role',
   'Ultimo_Acesso': 'lastsignedin',
+  // Aliases para Valor_Total (usado em múltiplas tabelas)
+  // Quando é item de nota, usar totalprice
+  // Quando é invoice, usar totalvalue (já mapeado acima)
 };
 
 const DECIMAL_HEADERS = new Set([
@@ -313,6 +316,12 @@ function rowToObject(row: any[], headers: string[]): any {
         header === 'Quantidade_Usada' || header === 'Valor_Total_Gasto') {
       const normalized = normalizeDecimalFromPtBr(value);
       obj[key] = normalized !== null ? normalized : value;
+      
+      // Para Valor_Total, adicionar alias para compatibilidade
+      if (header === 'Valor_Total') {
+        obj['totalprice'] = normalized !== null ? normalized : value;
+        obj['totalvalue'] = normalized !== null ? normalized : value;
+      }
     } else {
       obj[key] = value === '' ? null : value;
     }
