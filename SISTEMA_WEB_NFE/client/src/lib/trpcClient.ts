@@ -3,9 +3,23 @@ import { trpc } from './trpc';
 
 const getBaseUrl = () => {
   if (typeof window !== 'undefined') {
-    return import.meta.env.VITE_API_URL || '';
+    // Se VITE_API_URL estiver definido, usar ele
+    if (import.meta.env.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    
+    // Auto-detectar ambiente baseado na URL
+    const hostname = window.location.hostname;
+    
+    // Produção no GitHub Pages
+    if (hostname.includes('github.io')) {
+      return 'https://nfe-backend-nwb0.onrender.com';
+    }
+    
+    // Desenvolvimento local
+    return 'http://localhost:3001';
   }
-  return process.env.VITE_API_URL || 'http://localhost:3001';
+  return 'http://localhost:3001';
 };
 
 // Função para inicializar usuário padrão no localStorage (se não existir)
