@@ -523,23 +523,37 @@ export async function createNfeItems(items: any[]) {
   const now = new Date().toISOString();
   
   const rows = items.map(item => {
-    // Calcular totalPrice se estiver vazio
-    let totalPrice = item.totalPrice;
-    if (!totalPrice || totalPrice === '0' || totalPrice === 0) {
-      const qty = Number(item.quantity) || 0;
-      const price = Number(item.unitPrice) || 0;
-      totalPrice = (qty * price).toFixed(2);
-      console.log(`[createNfeItems] Calculando totalPrice: ${qty} x ${price} = ${totalPrice}`);
+    // SEMPRE calcular totalPrice baseado em quantity e unitPrice
+    // Normalizar valores para garantir cálculo correto
+    let qty = 0;
+    let price = 0;
+    
+    // Converter quantity
+    if (item.quantity) {
+      const qtyStr = String(item.quantity).trim().replace(',', '.');
+      qty = parseFloat(qtyStr) || 0;
     }
+    
+    // Converter unitPrice
+    if (item.unitPrice) {
+      const priceStr = String(item.unitPrice).trim().replace(',', '.');
+      price = parseFloat(priceStr) || 0;
+    }
+    
+    // Calcular totalPrice
+    const totalPrice = (qty * price).toFixed(2);
+    
+    console.log(`[createNfeItems] Calculando totalPrice: ${qty} x ${price} = ${totalPrice}`);
+    console.log(`[createNfeItems] Valores originais: quantity="${item.quantity}", unitPrice="${item.unitPrice}", totalPrice="${item.totalPrice}"`);
     
     const rowItem = {
       id: itemIdCounter++,
       invoiceid: item.invoiceId,
       productname: item.productName,
-      quantity: item.quantity,
+      quantity: qty.toString(), // Usar valor normalizado
       unitofmeasure: item.unitOfMeasure,
-      unitprice: item.unitPrice,
-      totalprice: totalPrice,
+      unitprice: price.toString(), // Usar valor normalizado
+      totalprice: totalPrice, // SEMPRE usar o valor calculado
       batchnumber: item.batchNumber || '',
       expirationdate: item.expirationDate || '',
       manufacturingdate: item.manufacturingDate || '',
@@ -548,7 +562,12 @@ export async function createNfeItems(items: any[]) {
       updatedat: now,
     };
     
-    console.log('[createNfeItems] Item:', { productname: rowItem.productname, totalprice: rowItem.totalprice, unitprice: rowItem.unitprice, quantity: rowItem.quantity });
+    console.log('[createNfeItems] Item final:', { 
+      productname: rowItem.productname, 
+      totalprice: rowItem.totalprice, 
+      unitprice: rowItem.unitprice, 
+      quantity: rowItem.quantity 
+    });
     
     return objectToRow(rowItem, headers);
   });
