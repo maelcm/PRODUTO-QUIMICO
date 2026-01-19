@@ -36,13 +36,16 @@ export default function StockControl() {
   const { data: expenses, refetch: refetchExpenses } = trpc.expenses.getDailyExpenses.useQuery();
 
   const createExpense = trpc.expenses.createDailyExpense.useMutation({
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log('[StockControl] ✅ Mutation onSuccess chamado:', result);
       alert('Gasto registrado com sucesso!');
       refetchExpenses();
       refetchBatches();
       setSelectedBatches(new Set());
     },
     onError: (error) => {
+      console.error('[StockControl] ❌ Mutation onError chamado:', error);
+      console.error('[StockControl] Erro completo:', JSON.stringify(error, null, 2));
       alert(`Erro: ${error.message}`);
     },
   });
@@ -121,6 +124,8 @@ export default function StockControl() {
   };
 
   const onSubmit = (data: ExpenseForm) => {
+    console.log('[StockControl] onSubmit chamado!', { data, selectedProduct, selectedBatches: Array.from(selectedBatches) });
+    
     if (selectedBatches.size === 0) {
       alert('Selecione pelo menos um lote para dar baixa!');
       return;
@@ -138,11 +143,24 @@ export default function StockControl() {
       .filter(Boolean)
       .join(', ');
 
-    createExpense.mutate({
+    const mutationData = {
       ...data,
       productName: selectedProduct,
       description: `Lotes selecionados: ${selectedBatchesList}`,
+    };
+    
+    console.log('[StockControl] Dados que serão enviados:', mutationData);
+    console.log('[StockControl] Chamando createExpense.mutate...');
+    
+    createExpense.mutate(mutationData, {
+      onSuccess: (result) => {
+        console.log('[StockControl] ✅ Mutation sucesso:', result);
+      },
+      onError: (error) => {
+        console.error('[StockControl] ❌ Mutation erro:', error);
+      },
     });
+    
     reset();
     setSelectedBatches(new Set());
   };

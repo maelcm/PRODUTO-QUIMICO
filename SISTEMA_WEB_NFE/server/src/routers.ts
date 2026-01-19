@@ -492,29 +492,52 @@ export const expensesRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const db = await dbPromise;
-      const expenseData: any = {
-        userId: ctx.userId,
-        productName: input.productName,
-        invoiceNumber: input.invoiceNumber || null,
-        expenseDate: input.expenseDate,
-        quantityUsed: String(input.quantityUsed),
-        totalExpense: String(input.totalExpense),
-        description: input.description || null,
-      };
+      console.log('='.repeat(80));
+      console.log('[expensesRouter.createDailyExpense] 🚀 REQUISIÇÃO RECEBIDA!');
+      console.log('[expensesRouter.createDailyExpense] UserId:', ctx.userId);
+      console.log('[expensesRouter.createDailyExpense] Input:', JSON.stringify(input, null, 2));
       
-      // Se não for Google Sheets, converter string para Date
-      if (!USE_GOOGLE_SHEETS) {
-        expenseData.expenseDate = new Date(input.expenseDate);
-      }
-      
-      const expense = await db.createDailyExpense(expenseData);
+      try {
+        const db = await dbPromise;
+        console.log('[expensesRouter.createDailyExpense] DB obtido com sucesso');
+        
+        const expenseData: any = {
+          userId: ctx.userId,
+          productName: input.productName,
+          invoiceNumber: input.invoiceNumber || null,
+          expenseDate: input.expenseDate,
+          quantityUsed: String(input.quantityUsed),
+          totalExpense: String(input.totalExpense),
+          description: input.description || null,
+        };
+        
+        console.log('[expensesRouter.createDailyExpense] Dados do gasto preparados:', expenseData);
+        
+        // Se não for Google Sheets, converter string para Date
+        if (!USE_GOOGLE_SHEETS) {
+          expenseData.expenseDate = new Date(input.expenseDate);
+        }
+        
+        console.log('[expensesRouter.createDailyExpense] Chamando db.createDailyExpense...');
+        const expense = await db.createDailyExpense(expenseData);
+        console.log('[expensesRouter.createDailyExpense] ✅ Gasto criado:', expense);
 
-      if (!expense || !expense.id) {
-        throw new Error('Erro ao criar gasto diário');
-      }
+        if (!expense || !expense.id) {
+          console.error('[expensesRouter.createDailyExpense] ❌ Gasto criado mas sem ID!');
+          throw new Error('Erro ao criar gasto diário');
+        }
 
-      return { success: true, expenseId: expense.id };
+        console.log('[expensesRouter.createDailyExpense] ✅ SUCESSO! Retornando resultado...');
+        console.log('='.repeat(80));
+        return { success: true, expenseId: expense.id };
+      } catch (error) {
+        console.error('[expensesRouter.createDailyExpense] ❌ ERRO:', error);
+        if (error instanceof Error) {
+          console.error('[expensesRouter.createDailyExpense] Stack:', error.stack);
+        }
+        console.log('='.repeat(80));
+        throw error;
+      }
     }),
 
   // Listar gastos
