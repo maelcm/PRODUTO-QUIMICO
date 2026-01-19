@@ -274,7 +274,7 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
         if (!trimmedBlock || trimmedBlock.length < 10) continue;
 
         // Extrair quantidade e nome do produto do bloco
-        const qtyMatch = trimmedBlock.match(/^(\d+(?:\.\d+)?)\s*(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+(.+?)(?:\s+FABRICACAO|\s+VALIDADE|\s+LOTE|$)/i);
+        let qtyMatch = trimmedBlock.match(/^(\d+(?:\.\d+)?)\s*(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+(.+?)(?:\s+FABRICACAO|\s+VALIDADE|\s+LOTE|$)/i);
         if (!qtyMatch) {
           // Tentar padrão alternativo sem espaço entre quantidade e unidade
           const altMatch = trimmedBlock.match(/^(\d+(?:\.\d+)?)(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+(.+?)(?:\s+FABRICACAO|\s+VALIDADE|\s+LOTE|$)/i);
