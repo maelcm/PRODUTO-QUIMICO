@@ -481,51 +481,79 @@ export const productsRouter = router({
 export const expensesRouter = router({
   // Criar gasto diário
   createDailyExpense: protectedProcedure
-    .input(
-      z.object({
-        productName: z.string().min(1, 'Nome do produto é obrigatório'),
-        invoiceNumber: z.string().optional().nullable(),
-        expenseDate: z.any().transform((val) => {
-          // Aceitar qualquer formato e converter para YYYY-MM-DD
-          if (!val) return new Date().toISOString().split('T')[0];
-          
-          if (typeof val === 'string') {
-            // Se já está no formato correto, retornar
-            if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-            
-            // Tentar converter formato DD/MM/YYYY para YYYY-MM-DD
-            const dateMatch = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-            if (dateMatch) {
-              const [, day, month, year] = dateMatch;
-              return `${year}-${month}-${day}`;
-            }
-            
+    .input(z.any().transform((data: any) => {
+      // Aceitar qualquer formato de entrada e normalizar
+      console.log('[createDailyExpense Schema] Input recebido:', JSON.stringify(data, null, 2));
+      
+      // Normalizar productName
+      const productName = String(data?.productName || data?.productname || '').trim();
+      if (!productName) {
+        throw new Error('Nome do produto é obrigatório');
+      }
+      
+      // Normalizar expenseDate
+      let expenseDate = data?.expenseDate || data?.expensedate;
+      if (!expenseDate) {
+        expenseDate = new Date().toISOString().split('T')[0];
+      } else if (typeof expenseDate === 'string') {
+        // Se já está no formato correto, manter
+        if (/^\d{4}-\d{2}-\d{2}$/.test(expenseDate)) {
+          // OK, manter
+        } else {
+          // Tentar converter formato DD/MM/YYYY para YYYY-MM-DD
+          const dateMatch = expenseDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (dateMatch) {
+            const [, day, month, year] = dateMatch;
+            expenseDate = `${year}-${month}-${day}`;
+          } else {
             // Tentar converter como objeto Date
-            const date = new Date(val);
+            const date = new Date(expenseDate);
             if (!isNaN(date.getTime())) {
-              return date.toISOString().split('T')[0];
+              expenseDate = date.toISOString().split('T')[0];
+            } else {
+              expenseDate = new Date().toISOString().split('T')[0];
             }
           }
-          
-          // Se for objeto Date
-          if (val instanceof Date && !isNaN(val.getTime())) {
-            return val.toISOString().split('T')[0];
-          }
-          
-          // Fallback: usar data atual
-          return new Date().toISOString().split('T')[0];
-        }),
-        quantityUsed: z.any().transform((val) => {
-          if (val === '' || val === null || val === undefined) return '0';
-          return String(val);
-        }),
-        totalExpense: z.any().transform((val) => {
-          if (val === '' || val === null || val === undefined) return '0';
-          return String(val);
-        }),
-        description: z.string().optional().nullable(),
-      })
-    )
+        }
+      } else if (expenseDate instanceof Date) {
+        expenseDate = expenseDate.toISOString().split('T')[0];
+      } else {
+        expenseDate = new Date().toISOString().split('T')[0];
+      }
+      
+      // Normalizar quantityUsed
+      let quantityUsed = data?.quantityUsed || data?.quantityused || '0';
+      if (quantityUsed === '' || quantityUsed === null || quantityUsed === undefined) {
+        quantityUsed = '0';
+      }
+      quantityUsed = String(quantityUsed);
+      
+      // Normalizar totalExpense
+      let totalExpense = data?.totalExpense || data?.totalexpense || '0';
+      if (totalExpense === '' || totalExpense === null || totalExpense === undefined) {
+        totalExpense = '0';
+      }
+      totalExpense = String(totalExpense);
+      
+      // Normalizar description
+      const description = data?.description || null;
+      
+      // Normalizar invoiceNumber
+      const invoiceNumber = data?.invoiceNumber || data?.invoicenumber || null;
+      
+      const normalized = {
+        productName,
+        invoiceNumber,
+        expenseDate,
+        quantityUsed,
+        totalExpense,
+        description,
+      };
+      
+      console.log('[createDailyExpense Schema] Dados normalizados:', JSON.stringify(normalized, null, 2));
+      
+      return normalized;
+    }))
     .mutation(async ({ ctx, input }) => {
       console.log('='.repeat(80));
       console.log('[expensesRouter.createDailyExpense] 🚀 REQUISIÇÃO RECEBIDA!');
