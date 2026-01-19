@@ -87,6 +87,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware para log de requisições tRPC
+app.use('/trpc', (req, res, next) => {
+  console.log(`[tRPC Request] ${req.method} ${req.url}`);
+  console.log(`[tRPC Request] Headers:`, {
+    'x-user-id': req.headers['x-user-id'],
+    'x-user-email': req.headers['x-user-email'],
+    origin: req.headers.origin,
+  });
+  next();
+});
+
 // tRPC middleware
 app.use(
   '/trpc',
@@ -94,7 +105,9 @@ app.use(
     router: appRouter,
     createContext: async (opts) => {
       try {
+        console.log('[tRPC Context] Criando contexto...');
         const ctx = await createContext(opts);
+        console.log('[tRPC Context] Contexto criado:', { userId: ctx.userId });
         return ctx;
       } catch (error) {
         console.error('[Context Error]:', error);
@@ -109,13 +122,18 @@ app.use(
         };
       }
     },
-    onError: ({ error, path, type }) => {
+    onError: ({ error, path, type, input }) => {
+      console.error('='.repeat(80));
       console.error(`[tRPC Error] Path: ${path || 'unknown'}, Type: ${type}`);
       console.error(`[tRPC Error] Message:`, error.message);
-      console.error(`[tRPC Error] Stack:`, error.stack);
+      console.error(`[tRPC Error] Input:`, input);
+      if (error.stack) {
+        console.error(`[tRPC Error] Stack:`, error.stack);
+      }
       if (error.cause) {
         console.error(`[tRPC Error] Cause:`, error.cause);
       }
+      console.error('='.repeat(80));
     },
   })
 );
