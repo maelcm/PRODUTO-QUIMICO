@@ -485,34 +485,41 @@ export const expensesRouter = router({
       z.object({
         productName: z.string().min(1, 'Nome do produto é obrigatório'),
         invoiceNumber: z.string().optional().nullable(),
-        expenseDate: z.union([
-          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
-          z.string().transform((val) => {
+        expenseDate: z.any().transform((val) => {
+          // Aceitar qualquer formato e converter para YYYY-MM-DD
+          if (!val) return new Date().toISOString().split('T')[0];
+          
+          if (typeof val === 'string') {
+            // Se já está no formato correto, retornar
+            if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+            
             // Tentar converter formato DD/MM/YYYY para YYYY-MM-DD
             const dateMatch = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
             if (dateMatch) {
               const [, day, month, year] = dateMatch;
               return `${year}-${month}-${day}`;
             }
-            // Tentar converter objeto Date
+            
+            // Tentar converter como objeto Date
             const date = new Date(val);
             if (!isNaN(date.getTime())) {
               return date.toISOString().split('T')[0];
             }
-            return val;
-          }),
-        ]),
-        quantityUsed: z.union([
-          z.string(),
-          z.number(),
-        ]).transform((val) => {
+          }
+          
+          // Se for objeto Date
+          if (val instanceof Date && !isNaN(val.getTime())) {
+            return val.toISOString().split('T')[0];
+          }
+          
+          // Fallback: usar data atual
+          return new Date().toISOString().split('T')[0];
+        }),
+        quantityUsed: z.any().transform((val) => {
           if (val === '' || val === null || val === undefined) return '0';
           return String(val);
         }),
-        totalExpense: z.union([
-          z.string(),
-          z.number(),
-        ]).transform((val) => {
+        totalExpense: z.any().transform((val) => {
           if (val === '' || val === null || val === undefined) return '0';
           return String(val);
         }),
