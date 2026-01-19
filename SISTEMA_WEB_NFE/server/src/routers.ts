@@ -541,6 +541,73 @@ export const expensesRouter = router({
       await db.deleteDailyExpense(input.id, ctx.userId);
       return { success: true };
     }),
+
+  // Relatório de gastos
+  getExpensesReport: protectedProcedure
+    .input(
+      z.object({
+        startDate: dateSchema,
+        endDate: dateSchema,
+        reportType: z.enum(['daily', 'weekly', 'monthly', 'annual']).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const db = await dbPromise;
+      const startDate = new Date(input.startDate);
+      const endDate = new Date(input.endDate);
+      endDate.setHours(23, 59, 59, 999); // Fim do dia
+
+      const expenses = await db.getDailyExpensesByUserId(ctx.userId, startDate, endDate);
+      
+      // Agrupar por período conforme tipo de relatório
+      let grouped: Record<string, any[]> = {};
+      
+      if (input.reportType === 'daily') {
+        expenses.forEach(exp => {
+          const date = new Date(exp.expenseDate).toLocaleDateString('pt-BR');
+          if (!grouped[date]) grouped[date] = [];
+          grouped[date].push(exp);
+        });
+      } else if (input.reportType === 'weekly') {
+        expenses.forEach(exp => {
+          const date = new Date(exp.expenseDate);
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - date.getDay());
+          const weekKey = `Semana ${weekStart.toLocaleDateString('pt-BR')}`;
+          if (!grouped[weekKey]) grouped[weekKey] = [];
+          grouped[weekKey].push(exp);
+        });
+      } else if (input.reportType === 'monthly') {
+        expenses.forEach(exp => {
+          const date = new Date(exp.expenseDate);
+          const monthKey = `${date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}`;
+          if (!grouped[monthKey]) grouped[monthKey] = [];
+          grouped[monthKey].push(exp);
+        });
+      } else {
+        // Annual ou sem agrupamento
+        grouped['Todos'] = expenses;
+      }
+
+      // Calcular totais
+      const totalQuantity = expenses.reduce((sum, exp) => sum + Number(exp.quantityUsed || 0), 0);
+      const totalValue = expenses.reduce((sum, exp) => sum + Number(exp.totalExpense || 0), 0);
+
+      return {
+        expenses,
+        grouped,
+        totals: {
+          count: expenses.length,
+          totalQuantity,
+          totalValue,
+        },
+        period: {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          reportType: input.reportType || 'daily',
+        },
+      };
+    }),
 });
 
 // Router de OCR

@@ -25,7 +25,7 @@ let userIdCounter = 1;
 // Headers em português brasileiro
 const HEADERS: Record<string, string[]> = {
   INVOICES: ['ID', 'ID_Usuario', 'Chave_Acesso', 'Numero_Nota', 'Nome_Emitente', 'CNPJ_Emitente', 'Data_Emissao', 'Valor_Total', 'URL_XML', 'Data_Criacao', 'Data_Atualizacao'],
-  ITEMS: ['ID', 'ID_Nota', 'Nome_Produto', 'Quantidade', 'Unidade_Medida', 'Valor_Unitario', 'Valor_Total', 'Numero_Lote', 'Data_Validade', 'Data_Fabricacao', 'NCM', 'Data_Criacao', 'Data_Atualizacao'],
+  ITEMS: ['ID', 'ID_Nota', 'Nome_Produto', 'Quantidade', 'Quantidade_Usada', 'Unidade_Medida', 'Valor_Unitario', 'Valor_Total', 'Numero_Lote', 'Data_Validade', 'Data_Fabricacao', 'NCM', 'Data_Criacao', 'Data_Atualizacao'],
   MANUAL_PRODUCTS: ['ID', 'ID_Usuario', 'Nome_Produto', 'Quantidade', 'Unidade_Medida', 'Valor_Unitario', 'Valor_Total', 'Numero_Lote', 'Data_Validade', 'Data_Fabricacao', 'Data_Compra', 'Fornecedor', 'Numero_Cupom', 'Observacoes', 'Data_Criacao', 'Data_Atualizacao'],
   DAILY_EXPENSES: ['ID', 'ID_Usuario', 'Nome_Produto', 'Numero_Nota', 'Data_Gasto', 'Quantidade_Usada', 'Valor_Total_Gasto', 'Descricao', 'Data_Criacao', 'Data_Atualizacao'],
   USERS: ['ID', 'ID_Aberto', 'Nome', 'Email', 'Metodo_Login', 'Perfil', 'Data_Criacao', 'Data_Atualizacao', 'Ultimo_Acesso'],
@@ -551,6 +551,7 @@ export async function createNfeItems(items: any[]) {
       invoiceid: item.invoiceId,
       productname: item.productName,
       quantity: qty.toString(), // Usar valor normalizado
+      quantityused: '0', // Quantidade usada inicialmente 0
       unitofmeasure: item.unitOfMeasure,
       unitprice: price.toString(), // Usar valor normalizado
       totalprice: totalPrice, // SEMPRE usar o valor calculado
@@ -581,15 +582,16 @@ export async function createNfeItems(items: any[]) {
     invoiceId: parseInt(row[1]),
     productName: row[2],
     quantity: row[3],
-    unitOfMeasure: row[4],
-    unitPrice: row[5],
-    totalPrice: row[6],
-    batchNumber: row[7] || null,
-    expirationDate: row[8] || null,
-    manufacturingDate: row[9] || null,
-    ncm: row[10] || null,
-    createdAt: row[11],
-    updatedAt: row[12],
+    quantityUsed: row[4] || '0',
+    unitOfMeasure: row[5],
+    unitPrice: row[6],
+    totalPrice: row[7],
+    batchNumber: row[8] || null,
+    expirationDate: row[9] || null,
+    manufacturingDate: row[10] || null,
+    ncm: row[11] || null,
+    createdAt: row[12],
+    updatedAt: row[13],
   }));
 }
 
@@ -606,6 +608,7 @@ export async function getNfeItemsByInvoiceId(invoiceId: number) {
         invoiceId: parseInt(item.invoiceid),
         productName: item.productname,
         quantity: item.quantity,
+        quantityUsed: item.quantityused || '0',
         unitOfMeasure: item.unitofmeasure,
         unitPrice: item.unitprice,
         totalPrice: item.totalprice,
@@ -880,6 +883,16 @@ export async function createDailyExpense(data: any) {
   const headers = HEADERS.DAILY_EXPENSES;
   await sheetsService.appendRows(WORKSHEETS.DAILY_EXPENSES, [objectToRow(expense, headers)]);
 
+  // ATUALIZAR QUANTIDADE USADA NOS ITENS CORRESPONDENTES
+  // Extrair lotes da descrição (formato: "Lotes selecionados: Lote: XXX, Lote: YYY")
+  const description = data.description || '';
+  const batchMatches = description.match(/Lote:\s*([^,]+)/g) || [];
+  const batchNumbers = batchMatches.map((match: string) => match.replace(/Lote:\s*/i, '').trim()).filter(Boolean);
+  
+  if (batchNumbers.length > 0) {
+    await updateItemQuantityUsed(data.productName, batchNumbers, parseFloat(String(data.quantityUsed)) || 0);
+  }
+
   return {
     id: expense.id,
     userId: expense.userid,
@@ -892,6 +905,52 @@ export async function createDailyExpense(data: any) {
     createdAt: expense.createdat,
     updatedAt: expense.updatedat,
   };
+}
+
+/**
+ * Atualizar quantidade usada nos itens da NF-e
+ */
+async function updateItemQuantityUsed(productName: string, batchNumbers: string[], quantityToUse: number) {
+  try {
+    const rows = await sheetsService.readRows(WORKSHEETS.ITEMS);
+    if (rows.length <= 1) return; // Apenas cabeçalho
+
+    const headers = HEADERS.ITEMS;
+    const productNameColIdx = headers.indexOf('Nome_Produto');
+    const batchNumberColIdx = headers.indexOf('Numero_Lote');
+    const quantityColIdx = headers.indexOf('Quantidade');
+    const quantityUsedColIdx = headers.indexOf('Quantidade_Usada');
+    
+    if (productNameColIdx === -1 || batchNumberColIdx === -1 || quantityColIdx === -1 || quantityUsedColIdx === -1) {
+      console.error('[updateItemQuantityUsed] Colunas não encontradas');
+      return;
+    }
+
+    // Distribuir a quantidade usada entre os lotes selecionados
+    const quantityPerBatch = quantityToUse / batchNumbers.length;
+    
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const itemProductName = (row[productNameColIdx] || '').toString().trim();
+      const itemBatchNumber = (row[batchNumberColIdx] || '').toString().trim();
+      
+      // Verificar se é o produto e lote correto
+      if (itemProductName === productName && batchNumbers.includes(itemBatchNumber)) {
+        const currentQuantityUsed = parseFloat(String(row[quantityUsedColIdx] || '0').replace(',', '.')) || 0;
+        const newQuantityUsed = currentQuantityUsed + quantityPerBatch;
+        
+        // Atualizar quantidade usada na planilha
+        row[quantityUsedColIdx] = newQuantityUsed.toFixed(3).replace('.', ',');
+        
+        // Atualizar linha na planilha
+        await sheetsService.updateRow(WORKSHEETS.ITEMS, i + 1, row);
+        
+        console.log(`[updateItemQuantityUsed] Atualizado item: ${itemProductName} - Lote: ${itemBatchNumber} - Qtd Usada: ${newQuantityUsed.toFixed(3)}`);
+      }
+    }
+  } catch (error) {
+    console.error('[updateItemQuantityUsed] Erro ao atualizar quantidade usada:', error);
+  }
 }
 
 export async function getDailyExpensesByUserId(userId: number, startDate?: Date, endDate?: Date) {

@@ -201,6 +201,55 @@ class SheetsService {
   }
 
   /**
+   * Atualizar uma linha específica na planilha
+   */
+  async updateRow(worksheetName: string, rowIndex: number, values: any[]) {
+    await this.ensureInitialized();
+
+    try {
+      await this.getOrCreateWorksheet(worksheetName);
+
+      // Converter valores para formato pt-BR se necessário
+      const formattedValues = values.map(val => {
+        if (typeof val === 'number') {
+          return val.toString().replace('.', ',');
+        }
+        return val;
+      });
+
+      // Atualizar a linha usando range (ex: A2:Z2)
+      const range = `${worksheetName}!A${rowIndex}:${this.getColumnLetter(values.length)}${rowIndex}`;
+      
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId: this.spreadsheetId,
+        range: range,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [formattedValues],
+        },
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error(`[SheetsService] Erro ao atualizar linha ${rowIndex}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Converter número de coluna para letra (1 = A, 26 = Z, 27 = AA, etc.)
+   */
+  private getColumnLetter(columnNumber: number): string {
+    let result = '';
+    while (columnNumber > 0) {
+      columnNumber--;
+      result = String.fromCharCode(65 + (columnNumber % 26)) + result;
+      columnNumber = Math.floor(columnNumber / 26);
+    }
+    return result || 'Z'; // Default para Z se não conseguir calcular
+  }
+
+  /**
    * Limpar uma planilha (opcional, para reset)
    */
   async clearWorksheet(worksheetName: string) {
