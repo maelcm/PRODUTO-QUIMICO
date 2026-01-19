@@ -251,20 +251,52 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
       };
 
       // Tentar dividir o texto em blocos por produto
-      // Padrão: QUANTIDADE UNIDADE NOME FABRICACAO... ou QUANTIDADEUNIDADE NOME...
+      // Cada bloco contém: QUANTIDADE UNIDADE NOME FABRICACAO... VALIDADE... LOTE...
       const productBlocks: string[] = [];
       
-      // Primeiro tentar dividir por padrão de quantidade + unidade + nome
-      const blockPattern = /(\d+(?:\.\d+)?)\s*(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+([A-Z][^0-9]+?)(?:\s+FABRICACAO|\s+VALIDADE|\s+LOTE|$)/gi;
+      // Encontrar todas as posições onde começam novos produtos
+      const productStartPattern = /(\d+(?:\.\d+)?)\s*(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+[A-Z]/gi;
+      const starts: number[] = [];
       let match;
-      while ((match = blockPattern.exec(infCplText)) !== null) {
-        productBlocks.push(match[0].trim());
+      while ((match = productStartPattern.exec(infCplText)) !== null) {
+        starts.push(match.index);
       }
       
-      // Se não encontrou blocos, tentar dividir por linhas ou por padrões alternativos
+      // Se não encontrou, tentar padrão alternativo
+      if (starts.length === 0) {
+        const altPattern = /(\d+(?:\.\d+)?)(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+[A-Z]/gi;
+        while ((match = altPattern.exec(infCplText)) !== null) {
+          starts.push(match.index);
+        }
+      }
+      
+      // Extrair blocos
+      for (let i = 0; i < starts.length; i++) {
+        const start = starts[i];
+        const end = i < starts.length - 1 ? starts[i + 1] : infCplText.length;
+        let blockText = infCplText.substring(start, end).trim();
+        
+        // Limpar texto extra no final (remover informações de entrega, etc.)
+        const stopKeywords = ['PERMITE', 'END.', 'ENTREGA:', 'ALICOTA', 'ARTIGO', 'LC'];
+        for (const keyword of stopKeywords) {
+          const stopIdx = blockText.toUpperCase().indexOf(keyword);
+          if (stopIdx > 50) { // Só cortar se for depois de informações relevantes
+            blockText = blockText.substring(0, stopIdx).trim();
+            break;
+          }
+        }
+        
+        if (blockText.length > 10) {
+          productBlocks.push(blockText);
+        }
+      }
+      
+      // Fallback: se ainda não encontrou blocos, usar regex mais simples
       if (productBlocks.length === 0) {
-        const lines = infCplText.split(/\n|(?=\d+(?:\.\d+)?\s*(?:KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE))/i);
-        productBlocks.push(...lines.filter(l => l.trim().length > 10));
+        const simpleMatch = infCplText.match(/(\d+(?:\.\d+)?\s*(?:KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+[^0-9]+?(?=\d+(?:\.\d+)?\s*(?:KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)|PERMITE|END\.|$))/gi);
+        if (simpleMatch) {
+          productBlocks.push(...simpleMatch.map(b => b.trim()).filter(b => b.length > 10));
+        }
       }
       
       console.log(`[parseInfCplByProduct] Encontrados ${productBlocks.length} blocos de produto`);
@@ -272,6 +304,8 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
       for (let blockIdx = 0; blockIdx < productBlocks.length; blockIdx++) {
         const trimmedBlock = productBlocks[blockIdx].trim();
         if (!trimmedBlock || trimmedBlock.length < 10) continue;
+
+        console.log(`[parseInfCplByProduct] Bloco ${blockIdx + 1} completo: "${trimmedBlock.substring(0, 200)}"`);
 
         // Extrair quantidade e nome do produto do bloco
         let qtyMatch = trimmedBlock.match(/^(\d+(?:\.\d+)?)\s*(KG|G|L|ML|UN|UNID|PCT|CX|CAIXA|PACOTE)\s+(.+?)(?:\s+FABRICACAO|\s+VALIDADE|\s+LOTE|$)/i);
@@ -341,31 +375,70 @@ export async function parseNfeXml(xmlContent: string): Promise<ParsedNfeData> {
           let expirationDate: string | undefined;
           let manufacturingDate: string | undefined;
 
-          // Lote
-          const loteMatch = trimmedBlock.match(/LOTE[:\s\-]*([A-Z0-9\/\-\._]+)/i);
-          if (loteMatch) {
-            batchNumber = loteMatch[1].trim();
+          console.log(`[parseInfCplByProduct] Extraindo informações do bloco completo: "${trimmedBlock.substring(0, 300)}"`);
+
+          // Lote - tentar múltiplos padrões
+          // Exemplo: "LOTE: 591023" ou "LOTE:2021120027"
+          const lotePatterns = [
+            /LOTE[:\s]+([A-Z0-9\/\-\._]+)/i,
+            /LOTE[:\s]*([A-Z0-9\/\-\._]+)/i,
+            /LOTE\s+([A-Z0-9\/\-\._]+)/i,
+          ];
+          
+          for (const pattern of lotePatterns) {
+            const loteMatch = trimmedBlock.match(pattern);
+            if (loteMatch) {
+              // Capturar até encontrar espaço, fim de linha ou próximo campo
+              let loteValue = loteMatch[1].trim();
+              // Se o valor tem espaço ou caracteres especiais, pegar até encontrar espaço ou fim
+              const loteFullMatch = trimmedBlock.match(/LOTE[:\s]+([A-Z0-9\/\-\._\s]+?)(?=\s+(?:PERMITE|END|FABRICACAO|VALIDADE|25KG|50KG|60KG|100KG|500KG)|\s*$)/i);
+              if (loteFullMatch) {
+                loteValue = loteFullMatch[1].trim().split(/\s+/)[0]; // Pegar primeira palavra
+              }
+              batchNumber = loteValue;
+              console.log(`[parseInfCplByProduct] LOTE encontrado: "${batchNumber}"`);
+              break;
+            }
           }
 
-          // Fabricação
-          const fabMatch = trimmedBlock.match(/FABRICAÇÃO[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i);
-          if (fabMatch) {
-            const [, day, month, year] = fabMatch;
-            manufacturingDate = normalizeDate(`${day}/${month}/${year}`);
+          // Fabricação - tentar múltiplos padrões (com e sem acentuação)
+          const fabPatterns = [
+            /FABRICAÇÃO[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i,
+            /FABRICACAO[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i,
+            /FAB[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i,
+          ];
+          
+          for (const pattern of fabPatterns) {
+            const fabMatch = trimmedBlock.match(pattern);
+            if (fabMatch) {
+              const [, day, month, year] = fabMatch;
+              manufacturingDate = normalizeDate(`${day}/${month}/${year}`);
+              console.log(`[parseInfCplByProduct] FABRICAÇÃO encontrada: "${day}/${month}/${year}" -> "${manufacturingDate}"`);
+              break;
+            }
           }
 
-          // Validade
-          const valMatch = trimmedBlock.match(/VALIDADE[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i);
-          if (valMatch) {
-            const [, day, month, year] = valMatch;
-            expirationDate = normalizeDate(`${day}/${month}/${year}`);
+          // Validade - tentar múltiplos padrões
+          const valPatterns = [
+            /VALIDADE[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i,
+            /VAL[\.:\s\-]*([0-9]{2})\/([0-9]{2})\/([0-9]{2,4})/i,
+          ];
+          
+          for (const pattern of valPatterns) {
+            const valMatch = trimmedBlock.match(pattern);
+            if (valMatch) {
+              const [, day, month, year] = valMatch;
+              expirationDate = normalizeDate(`${day}/${month}/${year}`);
+              console.log(`[parseInfCplByProduct] VALIDADE encontrada: "${day}/${month}/${year}" -> "${expirationDate}"`);
+              break;
+            }
           }
 
           productInfoMap.set(i, { batchNumber, expirationDate, manufacturingDate });
           console.log(`[parseInfCplByProduct] ✅ Produto ${i + 1} "${prod.xProd || prod.descricao}" (${prod.qCom || prod.qTrib}${prod.uCom || ''}) associado (score: ${bestMatch.score}):`, {
-            batchNumber,
-            expirationDate,
-            manufacturingDate
+            batchNumber: batchNumber || '(não encontrado)',
+            expirationDate: expirationDate || '(não encontrado)',
+            manufacturingDate: manufacturingDate || '(não encontrado)'
           });
         } else {
           console.log(`[parseInfCplByProduct] ⚠️ Bloco ${blockIdx + 1} não encontrou produto correspondente`);
