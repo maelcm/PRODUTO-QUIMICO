@@ -886,11 +886,20 @@ export async function createDailyExpense(data: any) {
   // ATUALIZAR QUANTIDADE USADA NOS ITENS CORRESPONDENTES
   // Extrair lotes da descrição (formato: "Lotes selecionados: Lote: XXX, Lote: YYY")
   const description = data.description || '';
+  console.log('[createDailyExpense] Descrição recebida:', description);
+  
   const batchMatches = description.match(/Lote:\s*([^,]+)/g) || [];
   const batchNumbers = batchMatches.map((match: string) => match.replace(/Lote:\s*/i, '').trim()).filter(Boolean);
   
+  console.log('[createDailyExpense] Lotes extraídos:', batchNumbers);
+  console.log('[createDailyExpense] Produto:', data.productName);
+  console.log('[createDailyExpense] Quantidade a usar:', data.quantityUsed);
+  
   if (batchNumbers.length > 0) {
+    console.log('[createDailyExpense] Atualizando quantidade usada nos itens...');
     await updateItemQuantityUsed(data.productName, batchNumbers, parseFloat(String(data.quantityUsed)) || 0);
+  } else {
+    console.warn('[createDailyExpense] ⚠️ Nenhum lote encontrado na descrição. Não foi possível atualizar quantidade usada.');
   }
 
   return {
@@ -912,44 +921,101 @@ export async function createDailyExpense(data: any) {
  */
 async function updateItemQuantityUsed(productName: string, batchNumbers: string[], quantityToUse: number) {
   try {
-    const rows = await sheetsService.readRows(WORKSHEETS.ITEMS);
-    if (rows.length <= 1) return; // Apenas cabeçalho
-
-    const headers = HEADERS.ITEMS;
-    const productNameColIdx = headers.indexOf('Nome_Produto');
-    const batchNumberColIdx = headers.indexOf('Numero_Lote');
-    const quantityColIdx = headers.indexOf('Quantidade');
-    const quantityUsedColIdx = headers.indexOf('Quantidade_Usada');
+    console.log('[updateItemQuantityUsed] Iniciando atualização...');
+    console.log('[updateItemQuantityUsed] Parâmetros:', { productName, batchNumbers, quantityToUse });
     
-    if (productNameColIdx === -1 || batchNumberColIdx === -1 || quantityColIdx === -1 || quantityUsedColIdx === -1) {
-      console.error('[updateItemQuantityUsed] Colunas não encontradas');
+    const rows = await sheetsService.readRows(WORKSHEETS.ITEMS);
+    console.log(`[updateItemQuantityUsed] Total de linhas lidas: ${rows.length}`);
+    
+    if (rows.length <= 1) {
+      console.warn('[updateItemQuantityUsed] Apenas cabeçalho encontrado ou planilha vazia');
       return;
+    }
+
+    // Obter cabeçalhos da primeira linha
+    const headerRow = rows[0];
+    console.log('[updateItemQuantityUsed] Cabeçalhos:', headerRow);
+    
+    const productNameColIdx = headerRow.indexOf('Nome_Produto');
+    const batchNumberColIdx = headerRow.indexOf('Numero_Lote');
+    const quantityColIdx = headerRow.indexOf('Quantidade');
+    const quantityUsedColIdx = headerRow.indexOf('Quantidade_Usada');
+    
+    console.log('[updateItemQuantityUsed] Índices das colunas:', {
+      productNameColIdx,
+      batchNumberColIdx,
+      quantityColIdx,
+      quantityUsedColIdx
+    });
+    
+    if (productNameColIdx === -1 || batchNumberColIdx === -1 || quantityColIdx === -1) {
+      console.error('[updateItemQuantityUsed] ❌ Colunas obrigatórias não encontradas');
+      return;
+    }
+    
+    // Se Quantidade_Usada não existe, precisa adicionar a coluna primeiro
+    if (quantityUsedColIdx === -1) {
+      console.warn('[updateItemQuantityUsed] ⚠️ Coluna Quantidade_Usada não encontrada. Adicionando coluna...');
+      // Adicionar coluna Quantidade_Usada após Quantidade
+      headerRow.splice(quantityColIdx + 1, 0, 'Quantidade_Usada');
+      // Atualizar cabeçalho
+      await sheetsService.updateRow(WORKSHEETS.ITEMS, 1, headerRow);
+      console.log('[updateItemQuantityUsed] ✅ Coluna Quantidade_Usada adicionada!');
+      
+      // Reler as linhas após adicionar a coluna
+      const updatedRows = await sheetsService.readRows(WORKSHEETS.ITEMS);
+      rows.length = 0;
+      rows.push(...updatedRows);
     }
 
     // Distribuir a quantidade usada entre os lotes selecionados
     const quantityPerBatch = quantityToUse / batchNumbers.length;
+    console.log(`[updateItemQuantityUsed] Quantidade por lote: ${quantityPerBatch}`);
+    
+    let updatedCount = 0;
     
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
+      
+      // Garantir que a linha tenha todas as colunas necessárias
+      while (row.length <= quantityUsedColIdx) {
+        row.push('');
+      }
+      
       const itemProductName = (row[productNameColIdx] || '').toString().trim();
       const itemBatchNumber = (row[batchNumberColIdx] || '').toString().trim();
+      
+      console.log(`[updateItemQuantityUsed] Verificando linha ${i + 1}: Produto="${itemProductName}", Lote="${itemBatchNumber}"`);
       
       // Verificar se é o produto e lote correto
       if (itemProductName === productName && batchNumbers.includes(itemBatchNumber)) {
         const currentQuantityUsed = parseFloat(String(row[quantityUsedColIdx] || '0').replace(',', '.')) || 0;
         const newQuantityUsed = currentQuantityUsed + quantityPerBatch;
         
-        // Atualizar quantidade usada na planilha
+        // Atualizar quantidade usada na planilha (formato pt-BR)
         row[quantityUsedColIdx] = newQuantityUsed.toFixed(3).replace('.', ',');
         
         // Atualizar linha na planilha
+        console.log(`[updateItemQuantityUsed] Atualizando linha ${i + 1}...`);
         await sheetsService.updateRow(WORKSHEETS.ITEMS, i + 1, row);
         
-        console.log(`[updateItemQuantityUsed] Atualizado item: ${itemProductName} - Lote: ${itemBatchNumber} - Qtd Usada: ${newQuantityUsed.toFixed(3)}`);
+        console.log(`[updateItemQuantityUsed] ✅ Atualizado item: ${itemProductName} - Lote: ${itemBatchNumber}`);
+        console.log(`[updateItemQuantityUsed]   Qtd Usada anterior: ${currentQuantityUsed}`);
+        console.log(`[updateItemQuantityUsed]   Qtd Usada nova: ${newQuantityUsed.toFixed(3)}`);
+        updatedCount++;
       }
     }
+    
+    if (updatedCount === 0) {
+      console.warn('[updateItemQuantityUsed] ⚠️ Nenhum item foi atualizado. Verifique se o produto e lotes estão corretos.');
+    } else {
+      console.log(`[updateItemQuantityUsed] ✅ ${updatedCount} item(s) atualizado(s) com sucesso!`);
+    }
   } catch (error) {
-    console.error('[updateItemQuantityUsed] Erro ao atualizar quantidade usada:', error);
+    console.error('[updateItemQuantityUsed] ❌ Erro ao atualizar quantidade usada:', error);
+    if (error instanceof Error) {
+      console.error('[updateItemQuantityUsed] Stack:', error.stack);
+    }
   }
 }
 
