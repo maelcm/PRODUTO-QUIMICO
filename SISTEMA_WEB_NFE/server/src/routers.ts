@@ -483,19 +483,53 @@ export const expensesRouter = router({
   createDailyExpense: protectedProcedure
     .input(
       z.object({
-        productName: z.string().min(1),
-        invoiceNumber: z.string().optional(),
-        expenseDate: dateSchema,
-        quantityUsed: z.string().or(z.number()),
-        totalExpense: z.string().or(z.number()),
-        description: z.string().optional(),
+        productName: z.string().min(1, 'Nome do produto é obrigatório'),
+        invoiceNumber: z.string().optional().nullable(),
+        expenseDate: z.union([
+          z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
+          z.string().transform((val) => {
+            // Tentar converter formato DD/MM/YYYY para YYYY-MM-DD
+            const dateMatch = val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (dateMatch) {
+              const [, day, month, year] = dateMatch;
+              return `${year}-${month}-${day}`;
+            }
+            // Tentar converter objeto Date
+            const date = new Date(val);
+            if (!isNaN(date.getTime())) {
+              return date.toISOString().split('T')[0];
+            }
+            return val;
+          }),
+        ]),
+        quantityUsed: z.union([
+          z.string(),
+          z.number(),
+        ]).transform((val) => {
+          if (val === '' || val === null || val === undefined) return '0';
+          return String(val);
+        }),
+        totalExpense: z.union([
+          z.string(),
+          z.number(),
+        ]).transform((val) => {
+          if (val === '' || val === null || val === undefined) return '0';
+          return String(val);
+        }),
+        description: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       console.log('='.repeat(80));
       console.log('[expensesRouter.createDailyExpense] 🚀 REQUISIÇÃO RECEBIDA!');
       console.log('[expensesRouter.createDailyExpense] UserId:', ctx.userId);
-      console.log('[expensesRouter.createDailyExpense] Input:', JSON.stringify(input, null, 2));
+      console.log('[expensesRouter.createDailyExpense] Input (antes de processar):', JSON.stringify(input, null, 2));
+      console.log('[expensesRouter.createDailyExpense] Tipos:', {
+        productName: typeof input.productName,
+        expenseDate: typeof input.expenseDate,
+        quantityUsed: typeof input.quantityUsed,
+        totalExpense: typeof input.totalExpense,
+      });
       
       try {
         const db = await dbPromise;
