@@ -270,9 +270,11 @@ export const productsRouter = router({
             batchNumber: item.batchNumber || null,
             expirationDate: item.expirationDate || null,
             manufacturingDate: item.manufacturingDate || null,
+            unitPrice: null, // Será calculado depois como média ponderada
             items: [],
             totalQuantity: 0,
             totalAvailable: 0,
+            totalWeightedPrice: 0, // Para calcular preço médio
           });
         }
         
@@ -297,6 +299,8 @@ export const productsRouter = router({
         const itemConsumed = consumed; // Simplificado - pode ser melhorado
         const itemAvailable = Math.max(0, itemQuantity - itemConsumed);
         
+        const itemUnitPrice = Number(item.unitPrice || 0);
+        
         batch.items.push({
           id: item.id,
           invoiceNumber: item.invoiceNumber,
@@ -305,15 +309,17 @@ export const productsRouter = router({
           origin: item.origin,
           quantity: itemQuantity,
           unitOfMeasure: item.unitOfMeasure,
+          unitPrice: itemUnitPrice,
           quantityAvailable: itemAvailable,
           quantityConsumed: itemConsumed,
         });
         
         batch.totalQuantity += itemQuantity;
         batch.totalAvailable += itemAvailable;
+        batch.totalWeightedPrice += itemQuantity * itemUnitPrice;
       });
       
-      // Recalcular totalAvailable considerando gastos totais do produto por lote
+      // Recalcular totalAvailable e unitPrice médio para cada lote
       batchMap.forEach((batch, batchKey) => {
         // Calcular gastos totais deste lote
         const batchExpenses = expenses
@@ -329,6 +335,16 @@ export const productsRouter = router({
           .reduce((sum: number, exp: any) => sum + Number(exp.quantityUsed || 0), 0);
         
         batch.totalAvailable = Math.max(0, batch.totalQuantity - batchExpenses);
+        
+        // Calcular preço unitário médio ponderado do lote
+        if (batch.totalQuantity > 0) {
+          batch.unitPrice = batch.totalWeightedPrice / batch.totalQuantity;
+        } else {
+          batch.unitPrice = 0;
+        }
+        
+        // Remover campo auxiliar
+        delete batch.totalWeightedPrice;
       });
       
       // Converter Map para array e ordenar por data de validade (mais próximo primeiro)
