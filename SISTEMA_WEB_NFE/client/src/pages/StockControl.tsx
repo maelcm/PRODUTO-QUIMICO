@@ -57,9 +57,22 @@ export default function StockControl() {
 
   // Calcular valor total automaticamente
   useEffect(() => {
-    const qty = Number(quantityUsed);
+    console.log('[StockControl] Calculando valor total...');
+    console.log('[StockControl] quantityUsed:', quantityUsed);
+    console.log('[StockControl] batches:', batches);
+    console.log('[StockControl] selectedBatches:', Array.from(selectedBatches));
     
-    if (!qty || isNaN(qty) || qty <= 0 || !batches || selectedBatches.size === 0) {
+    const qty = Number(quantityUsed);
+    console.log('[StockControl] qty convertido:', qty);
+    
+    if (!qty || isNaN(qty) || qty <= 0) {
+      console.log('[StockControl] Quantidade inválida, limpando totalExpense');
+      setValue('totalExpense', '');
+      return;
+    }
+    
+    if (!batches || selectedBatches.size === 0) {
+      console.log('[StockControl] Sem lotes selecionados, limpando totalExpense');
       setValue('totalExpense', '');
       return;
     }
@@ -70,7 +83,10 @@ export default function StockControl() {
       return selectedBatches.has(batchKey);
     });
 
+    console.log('[StockControl] selectedBatchesData:', selectedBatchesData);
+
     if (selectedBatchesData.length === 0) {
+      console.log('[StockControl] Nenhum lote encontrado, limpando totalExpense');
       setValue('totalExpense', '');
       return;
     }
@@ -83,19 +99,32 @@ export default function StockControl() {
       const qtyAvailable = Number(batch.quantityAvailable) || 0;
       const price = Number(batch.unitPrice) || 0;
       
+      console.log('[StockControl] Lote:', {
+        batchNumber: batch.batchNumber,
+        unitPrice_raw: batch.unitPrice,
+        quantityAvailable_raw: batch.quantityAvailable,
+        qtyAvailable,
+        price,
+      });
+      
       if (qtyAvailable > 0 && price > 0) {
         totalQuantity += qtyAvailable;
         weightedSum += qtyAvailable * price;
       }
     }
 
+    console.log('[StockControl] Cálculo:', { totalQuantity, weightedSum });
+
     if (totalQuantity === 0) {
+      console.log('[StockControl] Quantidade total zero, definindo 0.00');
       setValue('totalExpense', '0.00');
       return;
     }
 
     const averagePrice = weightedSum / totalQuantity;
     const total = qty * averagePrice;
+    
+    console.log('[StockControl] Resultado:', { averagePrice, total, totalFixed: total.toFixed(2) });
     
     setValue('totalExpense', total.toFixed(2));
   }, [quantityUsed, batches, selectedBatches, setValue]);
