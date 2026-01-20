@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Search, Filter, Package, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 
 type StatusFilter = 'all' | 'valido' | 'proximo_vencer' | 'vencido';
 
@@ -180,6 +181,7 @@ export default function Traceability() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lote</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Validade</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantidade</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Unit.</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Origem</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               </tr>
@@ -207,6 +209,11 @@ export default function Traceability() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {Number(product.quantityAvailable).toLocaleString('pt-BR')} {product.unitOfMeasure}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {product.unitPrice
+                        ? `R$ ${formatCurrency(product.unitPrice)}`
+                        : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
