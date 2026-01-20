@@ -179,9 +179,11 @@ export default function Traceability() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produto</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lote</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fabricação</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Validade</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantidade</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Unit.</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Total</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Origem</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               </tr>
@@ -203,6 +205,11 @@ export default function Traceability() {
                       {product.batchNumber || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {product.manufacturingDate
+                        ? new Date(product.manufacturingDate).toLocaleDateString('pt-BR')
+                        : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.expirationDate
                         ? new Date(product.expirationDate).toLocaleDateString('pt-BR')
                         : '-'}
@@ -211,16 +218,23 @@ export default function Traceability() {
                       {Number(product.quantityAvailable).toLocaleString('pt-BR')} {product.unitOfMeasure}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {product.unitPrice ? `R$ ${formatCurrency(product.unitPrice)}` : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.unitPrice
-                        ? `R$ ${formatCurrency(product.unitPrice)}`
+                        ? `R$ ${formatCurrency(
+                            Number(product.quantityAvailable || 0) * Number(product.unitPrice || 0),
+                          )}`
                         : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        product.origin === 'NF-e'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-purple-100 text-purple-800'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          product.origin === 'NF-e'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-purple-100 text-purple-800'
+                        }`}
+                      >
                         {product.origin}
                       </span>
                     </td>
