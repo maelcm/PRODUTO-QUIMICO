@@ -7,11 +7,11 @@ import PageHeader from '../components/PageHeader';
 import { Package, TrendingUp, Calendar, Trash2, Plus, CheckSquare, Square } from 'lucide-react';
 
 const expenseSchema = z.object({
-  productName: z.string().min(1, 'Selecione um produto'),
+  productName: z.string().optional(),
   invoiceNumber: z.string().optional(),
-  expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
-  quantityUsed: z.string().or(z.number()),
-  totalExpense: z.string().or(z.number()),
+  expenseDate: z.string().optional(),
+  quantityUsed: z.any().optional(),
+  totalExpense: z.any().optional(),
   description: z.string().optional(),
 });
 
@@ -35,20 +35,7 @@ export default function StockControl() {
 
   const { data: expenses, refetch: refetchExpenses } = trpc.expenses.getDailyExpenses.useQuery();
 
-  const createExpense = trpc.expenses.createDailyExpense.useMutation({
-    onSuccess: (result) => {
-      console.log('[StockControl] ✅ Mutation onSuccess chamado:', result);
-      alert('Gasto registrado com sucesso!');
-      refetchExpenses();
-      refetchBatches();
-      setSelectedBatches(new Set());
-    },
-    onError: (error) => {
-      console.error('[StockControl] ❌ Mutation onError chamado:', error);
-      console.error('[StockControl] Erro completo:', JSON.stringify(error, null, 2));
-      alert(`Erro: ${error.message}`);
-    },
-  });
+  const createExpense = trpc.expenses.createDailyExpense.useMutation();
 
   const deleteExpense = trpc.expenses.deleteDailyExpense.useMutation({
     onSuccess: () => {
@@ -124,10 +111,29 @@ export default function StockControl() {
   };
 
   const onSubmit = (data: ExpenseForm) => {
-    console.log('[StockControl] onSubmit chamado!', { data, selectedProduct, selectedBatches: Array.from(selectedBatches) });
+    console.log('[StockControl] ========================================');
+    console.log('[StockControl] onSubmit chamado!');
+    console.log('[StockControl] data:', data);
+    console.log('[StockControl] selectedProduct:', selectedProduct);
+    console.log('[StockControl] selectedBatches:', Array.from(selectedBatches));
+    console.log('[StockControl] ========================================');
+    
+    // Validações básicas
+    if (!selectedProduct) {
+      alert('Selecione um produto primeiro!');
+      console.error('[StockControl] ❌ Produto não selecionado');
+      return;
+    }
     
     if (selectedBatches.size === 0) {
       alert('Selecione pelo menos um lote para dar baixa!');
+      console.error('[StockControl] ❌ Nenhum lote selecionado');
+      return;
+    }
+    
+    if (!data.quantityUsed || Number(data.quantityUsed) <= 0) {
+      alert('Informe a quantidade usada!');
+      console.error('[StockControl] ❌ Quantidade inválida:', data.quantityUsed);
       return;
     }
 
@@ -144,25 +150,37 @@ export default function StockControl() {
       .join(', ');
 
     const mutationData = {
-      ...data,
       productName: selectedProduct,
-      description: `Lotes selecionados: ${selectedBatchesList}`,
+      invoiceNumber: data.invoiceNumber || '',
+      expenseDate: data.expenseDate || new Date().toISOString().split('T')[0],
+      quantityUsed: String(data.quantityUsed),
+      totalExpense: String(data.totalExpense || '0'),
+      description: `Lotes selecionados: ${selectedBatchesList}${data.description ? ' - ' + data.description : ''}`,
     };
     
-    console.log('[StockControl] Dados que serão enviados:', mutationData);
+    console.log('[StockControl] Dados normalizados que serão enviados:', mutationData);
     console.log('[StockControl] Chamando createExpense.mutate...');
     
-    createExpense.mutate(mutationData, {
-      onSuccess: (result) => {
-        console.log('[StockControl] ✅ Mutation sucesso:', result);
-      },
-      onError: (error) => {
-        console.error('[StockControl] ❌ Mutation erro:', error);
-      },
-    });
-    
-    reset();
-    setSelectedBatches(new Set());
+    try {
+      createExpense.mutate(mutationData, {
+        onSuccess: (result) => {
+          console.log('[StockControl] ✅ Mutation sucesso:', result);
+          alert('Gasto registrado com sucesso!');
+          reset();
+          setSelectedBatches(new Set());
+          refetchExpenses();
+          refetchBatches();
+        },
+        onError: (error) => {
+          console.error('[StockControl] ❌ Mutation erro:', error);
+          console.error('[StockControl] Erro detalhado:', JSON.stringify(error, null, 2));
+          alert(`Erro ao registrar gasto: ${error.message}`);
+        },
+      });
+    } catch (error) {
+      console.error('[StockControl] ❌ Exceção ao chamar mutate:', error);
+      alert(`Erro inesperado: ${error}`);
+    }
   };
 
   // Calcular estatísticas
