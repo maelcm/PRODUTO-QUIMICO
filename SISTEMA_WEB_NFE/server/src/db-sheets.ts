@@ -149,11 +149,13 @@ const HEADER_TO_KEY: Record<string, string> = {
   'ID_Nota': 'invoiceid',
   'Nome_Produto': 'productname',
   'Quantidade': 'quantity',
+  'Quantidade_Usada': 'quantityused',
   'Unidade_Medida': 'unitofmeasure',
   'Valor_Unitario': 'unitprice',
   'Numero_Lote': 'batchnumber',
   'Data_Validade': 'expirationdate',
   'Data_Fabricacao': 'manufacturingdate',
+  'NCM': 'ncm',
   // Manual Products
   'Data_Compra': 'purchasedate',
   'Fornecedor': 'supplier',
@@ -161,7 +163,6 @@ const HEADER_TO_KEY: Record<string, string> = {
   'Observacoes': 'observations',
   // Expenses
   'Data_Gasto': 'expensedate',
-  'Quantidade_Usada': 'quantityused',
   'Valor_Total_Gasto': 'totalexpense',
   'Descricao': 'description',
   // Users
@@ -304,12 +305,16 @@ function normalizeDecimalFromPtBr(value: any): string | null {
 /**
  * Converter linha de planilha para objeto
  */
-function rowToObject(row: any[], headers: string[]): any {
+function rowToObject(row: any[], headers: string[], debug = false): any {
   const obj: any = {};
   headers.forEach((header, index) => {
     const value = row[index] || '';
     // Usar mapeamento se existir, senão usar lowercase
     const key = HEADER_TO_KEY[header] || header.toLowerCase();
+    
+    if (debug && index < 12) {
+      console.log(`[rowToObject] Header[${index}]: "${header}" -> key: "${key}" -> value: "${value}"`);
+    }
     
     // Normalizar valores decimais (quantidade, preços)
     if (header === 'Quantidade' || header === 'Valor_Unitario' || header === 'Valor_Total' || 
@@ -665,11 +670,25 @@ export async function getAllNfeItemsByUserId(userId: number) {
   const itemRows = await sheetsService.readRows(WORKSHEETS.ITEMS);
   const itemHeaders = HEADERS.ITEMS;
   
+  console.log('[getAllNfeItemsByUserId] Headers esperados:', itemHeaders);
+  
   const result = [];
   for (let i = 1; i < itemRows.length; i++) {
-    const item = rowToObject(itemRows[i], itemHeaders);
+    const debug = i === 1; // Debug apenas primeira linha
+    const item = rowToObject(itemRows[i], itemHeaders, debug);
     const invoiceId = parseInt(item.invoiceid);
     if (userInvoiceIds.has(invoiceId)) {
+      if (debug) {
+        console.log('[getAllNfeItemsByUserId] Item mapeado:', {
+          batchNumber: item.batchnumber,
+          expirationDate: item.expirationdate,
+          manufacturingDate: item.manufacturingdate,
+          quantity: item.quantity,
+          unitPrice: item.unitprice,
+          totalPrice: item.totalprice,
+        });
+      }
+      
       result.push({
         item: {
           id: parseInt(item.id),
@@ -744,10 +763,24 @@ export async function getManualProductsByUserId(userId: number) {
   const rows = await sheetsService.readRows(WORKSHEETS.MANUAL_PRODUCTS);
   const headers = HEADERS.MANUAL_PRODUCTS;
   
+  console.log('[getManualProductsByUserId] Headers esperados:', headers);
+  
   const products = [];
   for (let i = 1; i < rows.length; i++) {
-    const product = rowToObject(rows[i], headers);
+    const debug = i === 1; // Debug apenas primeira linha
+    const product = rowToObject(rows[i], headers, debug);
     if (parseInt(product.userid) === userId) {
+      if (debug) {
+        console.log('[getManualProductsByUserId] Produto mapeado:', {
+          batchNumber: product.batchnumber,
+          expirationDate: product.expirationdate,
+          manufacturingDate: product.manufacturingdate,
+          quantity: product.quantity,
+          unitPrice: product.unitprice,
+          totalPrice: product.totalprice,
+        });
+      }
+      
       products.push({
         id: parseInt(product.id),
         userId: parseInt(product.userid),
