@@ -46,3 +46,24 @@ export function formatNumber(value: any, decimals: number = 2): string {
   const num = normalizeDecimal(value);
   return num.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
+
+/**
+ * Remove informações de lote e fabricação do nome do produto
+ * (já que essas informações aparecem em colunas separadas)
+ */
+export function cleanProductName(name: string): string {
+  if (!name) return '';
+  
+  let cleaned = name;
+  
+  // Remover " - LOTE: XXXXX" ou " LOTE: XXXXX"
+  cleaned = cleaned.replace(/\s*-?\s*LOTE:\s*[^\s]+/gi, '');
+  
+  // Remover " FAB.DD/MM/AA" ou " FAB.DD/MM/AAAA"
+  cleaned = cleaned.replace(/\s+FAB\.\s*\d{2}\/\d{2}\/\d{2,4}/gi, '');
+  
+  // Remover espaços extras e traços no final
+  cleaned = cleaned.replace(/\s*-\s*$/, '').trim();
+  
+  return cleaned;
+}

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Search, Filter, Package, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, cleanProductName } from '../lib/utils';
 
 type StatusFilter = 'all' | 'valido' | 'proximo_vencer' | 'vencido';
 
@@ -199,7 +199,7 @@ export default function Traceability() {
                 filteredProducts.map((product) => (
                   <tr key={`${product.id}-${product.origin}`} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {product.productName}
+                      {cleanProductName(product.productName)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.batchNumber || '-'}
