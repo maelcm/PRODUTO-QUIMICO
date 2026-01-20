@@ -25,7 +25,7 @@ let userIdCounter = 1;
 // Headers em português brasileiro
 const HEADERS: Record<string, string[]> = {
   INVOICES: ['ID', 'ID_Usuario', 'Chave_Acesso', 'Numero_Nota', 'Nome_Emitente', 'CNPJ_Emitente', 'Data_Emissao', 'Valor_Total', 'URL_XML', 'Data_Criacao', 'Data_Atualizacao'],
-  ITEMS: ['ID', 'ID_Nota', 'Nome_Produto', 'Quantidade', 'Quantidade_Usada', 'Unidade_Medida', 'Valor_Unitario', 'Valor_Total', 'Numero_Lote', 'Data_Validade', 'Data_Fabricacao', 'NCM', 'Data_Criacao', 'Data_Atualizacao'],
+  ITEMS: ['ID', 'ID_Nota', 'Nome_Produto', 'Quantidade', 'Unidade_Medida', 'Valor_Unitario', 'Valor_Total', 'Numero_Lote', 'Data_Validade', 'Data_Fabricacao', 'NCM', 'Quantidade_Usada', 'Data_Criacao', 'Data_Atualizacao'],
   MANUAL_PRODUCTS: ['ID', 'ID_Usuario', 'Nome_Produto', 'Quantidade', 'Unidade_Medida', 'Valor_Unitario', 'Valor_Total', 'Numero_Lote', 'Data_Validade', 'Data_Fabricacao', 'Data_Compra', 'Fornecedor', 'Numero_Cupom', 'Observacoes', 'Data_Criacao', 'Data_Atualizacao'],
   DAILY_EXPENSES: ['ID', 'ID_Usuario', 'Nome_Produto', 'Numero_Nota', 'Data_Gasto', 'Quantidade_Usada', 'Valor_Total_Gasto', 'Descricao', 'Data_Criacao', 'Data_Atualizacao'],
   USERS: ['ID', 'ID_Aberto', 'Nome', 'Email', 'Metodo_Login', 'Perfil', 'Data_Criacao', 'Data_Atualizacao', 'Ultimo_Acesso'],
