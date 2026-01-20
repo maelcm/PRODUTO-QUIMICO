@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Package, TrendingUp, Calendar, Trash2, Plus, CheckSquare, Square } from 'lucide-react';
+import { normalizeDecimal } from '../lib/utils';
 
 const expenseSchema = z.object({
   productName: z.string().optional(),
@@ -96,8 +97,8 @@ export default function StockControl() {
     let weightedSum = 0;
 
     for (const batch of selectedBatchesData) {
-      const qtyAvailable = Number(batch.quantityAvailable) || 0;
-      const price = Number(batch.unitPrice) || 0;
+      const qtyAvailable = normalizeDecimal(batch.quantityAvailable);
+      const price = normalizeDecimal(batch.unitPrice);
       
       console.log('[StockControl] Lote:', {
         batchNumber: batch.batchNumber,
