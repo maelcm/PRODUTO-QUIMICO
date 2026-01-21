@@ -1053,13 +1053,19 @@ async function updateItemQuantityUsed(productName: string, batchNumbers: string[
 }
 
 export async function getDailyExpensesByUserId(userId: number, startDate?: Date, endDate?: Date) {
+  console.log(`[getDailyExpensesByUserId] Buscando gastos para userId: ${userId}`);
   const rows = await sheetsService.readRows(WORKSHEETS.DAILY_EXPENSES);
   const headers = HEADERS.DAILY_EXPENSES;
+  console.log(`[getDailyExpensesByUserId] Total de linhas na planilha: ${rows.length}`);
   
   const expenses = [];
   for (let i = 1; i < rows.length; i++) {
     const expense = rowToObject(rows[i], headers);
-    if (parseInt(expense.userid) === userId) {
+    const expenseUserId = parseInt(expense.userid);
+    
+    console.log(`[getDailyExpensesByUserId] Linha ${i}: userId=${expenseUserId}, productName=${expense.productname}, date=${expense.expensedate}, total=${expense.totalexpense}`);
+    
+    if (expenseUserId === userId) {
       const expenseDate = new Date(expense.expensedate);
       
       if (startDate && expenseDate < startDate) continue;
@@ -1067,7 +1073,7 @@ export async function getDailyExpensesByUserId(userId: number, startDate?: Date,
 
       expenses.push({
         id: parseInt(expense.id),
-        userId: parseInt(expense.userid),
+        userId: expenseUserId,
         productName: expense.productname,
         invoiceNumber: expense.invoicenumber || null,
         expenseDate: expense.expensedate,
@@ -1080,6 +1086,7 @@ export async function getDailyExpensesByUserId(userId: number, startDate?: Date,
     }
   }
 
+  console.log(`[getDailyExpensesByUserId] Total de gastos encontrados: ${expenses.length}`);
   return expenses.sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime());
 }
 
