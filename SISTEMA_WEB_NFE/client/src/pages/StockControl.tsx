@@ -98,13 +98,13 @@ export default function StockControl() {
     let weightedSum = 0;
 
     for (const batch of selectedBatchesData) {
-      const qtyAvailable = normalizeDecimal(batch.quantityAvailable);
+      const qtyAvailable = normalizeDecimal(batch.totalAvailable);
       const price = normalizeDecimal(batch.unitPrice);
       
       console.log('[StockControl] Lote:', {
         batchNumber: batch.batchNumber,
         unitPrice_raw: batch.unitPrice,
-        quantityAvailable_raw: batch.quantityAvailable,
+        totalAvailable_raw: batch.totalAvailable,
         qtyAvailable,
         price,
       });
