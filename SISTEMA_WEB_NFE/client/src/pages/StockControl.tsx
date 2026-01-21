@@ -21,7 +21,7 @@ type ExpenseForm = z.infer<typeof expenseSchema>;
 type SelectedBatch = {
   batchNumber: string | null;
   batchKey: string;
-  quantityAvailable: number;
+  totalAvailable: number;
   unitPrice: number;
 };
 
