@@ -22,6 +22,7 @@ type SelectedBatch = {
   batchNumber: string | null;
   batchKey: string;
   quantityAvailable: number;
+  unitPrice: number;
 };
 
 export default function StockControl() {
