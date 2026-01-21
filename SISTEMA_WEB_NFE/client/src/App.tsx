@@ -10,6 +10,7 @@ import NfeUploadXml from './pages/NfeUploadXml';
 import ManualProductCreate from './pages/ManualProductCreate';
 import Traceability from './pages/Traceability';
 import StockControl from './pages/StockControl';
+import ExpensesReport from './pages/ExpensesReport';
 import OcrUpload from './pages/OcrUpload';
 
 const queryClient = new QueryClient({
@@ -39,6 +40,7 @@ function App() {
               <Route path="/manual" element={<ManualProductCreate />} />
               <Route path="/traceability" element={<Traceability />} />
               <Route path="/stock" element={<StockControl />} />
+              <Route path="/reports" element={<ExpensesReport />} />
               <Route path="/ocr" element={<OcrUpload />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

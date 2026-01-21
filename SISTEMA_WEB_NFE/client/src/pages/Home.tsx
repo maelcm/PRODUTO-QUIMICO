@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FileText, Upload, PenTool, Search, Package, TrendingUp, Camera } from 'lucide-react';
+import { FileText, Upload, PenTool, Search, Package, TrendingUp, Camera, BarChart3 } from 'lucide-react';
 
 export default function Home() {
   const features = [
@@ -44,6 +44,13 @@ export default function Home() {
       icon: Package,
       link: '/stock',
       color: 'bg-red-500',
+    },
+    {
+      title: 'Relatórios de Gastos',
+      description: 'Visualize relatórios diários, semanais e mensais com exportação PDF',
+      icon: BarChart3,
+      link: '/reports',
+      color: 'bg-yellow-500',
     },
     {
       title: 'OCR - Processar Lista',
@@ -100,6 +107,7 @@ export default function Home() {
             <li>✅ Cadastro manual de produtos sem NF-e</li>
             <li>✅ Rastreabilidade completa com status de validade</li>
             <li>✅ Controle de estoque e gastos diários</li>
+            <li>✅ Relatórios de gastos com exportação PDF</li>
             <li>✅ Cálculo automático de quantidade disponível</li>
             <li>✅ Dashboard unificado (NF-e + produtos manuais)</li>
             <li>✅ Filtros avançados por produto, lote e status</li>
