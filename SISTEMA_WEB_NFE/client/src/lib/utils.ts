@@ -48,6 +48,24 @@ export function formatNumber(value: any, decimals: number = 2): string {
 }
 
 /**
+ * Formata data para exibição em pt-BR
+ */
+export function formatDate(dateString: string | Date): string {
+  if (!dateString) return '-';
+  
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  
+  // Verificar se é uma data válida
+  if (isNaN(date.getTime())) return '-';
+  
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+/**
  * Remove informações de lote e fabricação do nome do produto
  * (já que essas informações aparecem em colunas separadas)
  */
