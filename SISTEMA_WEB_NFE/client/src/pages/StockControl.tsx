@@ -216,13 +216,19 @@ export default function StockControl() {
 
   // Calcular estatísticas
   const today = new Date().toISOString().split('T')[0];
+  const firstDayOfWeek = new Date();
+  firstDayOfWeek.setDate(firstDayOfWeek.getDate() - 7); // Últimos 7 dias
+  const weekStart = firstDayOfWeek.toISOString().split('T')[0];
+  
   const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     .toISOString().split('T')[0];
 
   const todayExpenses = expenses?.filter((e) => e.expenseDate === today) || [];
+  const weekExpenses = expenses?.filter((e) => e.expenseDate >= weekStart) || [];
   const monthExpenses = expenses?.filter((e) => e.expenseDate >= firstDayOfMonth) || [];
 
   const todayTotal = todayExpenses.reduce((sum, e) => sum + Number(e.totalExpense), 0);
+  const weekTotal = weekExpenses.reduce((sum, e) => sum + Number(e.totalExpense), 0);
   const monthTotal = monthExpenses.reduce((sum, e) => sum + Number(e.totalExpense), 0);
 
   return (
@@ -434,6 +440,16 @@ export default function StockControl() {
                   </p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-600">Gasto da Semana (7 dias)</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    R$ {weekTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <Calendar className="w-8 h-8 text-purple-600" />
               </div>
 
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
