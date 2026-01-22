@@ -360,14 +360,21 @@ export default function StockControl() {
                                         )}
                                       </div>
                                       <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                            item.origin === 'NF-e'
-                                              ? 'bg-blue-100 text-blue-800'
-                                              : 'bg-purple-100 text-purple-800'
-                                          }`}>
-                                            {item.invoiceNumber || 'Manual'}
-                                          </span>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <div className="flex items-center gap-1">
+                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                              item.origin === 'NF-e'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-purple-100 text-purple-800'
+                                            }`}>
+                                              {item.invoiceNumber || 'Manual'}
+                                            </span>
+                                            {item.emissionDate && (
+                                              <span className="text-xs text-gray-500">
+                                                ({new Date(item.emissionDate).toLocaleDateString('pt-BR')})
+                                              </span>
+                                            )}
+                                          </div>
                                           <span className="text-sm">
                                             <span className="font-semibold text-green-600">
                                               {Number(item.quantityAvailable).toLocaleString('pt-BR')} {item.unitOfMeasure}
