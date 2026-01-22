@@ -5,6 +5,31 @@
 
 import { sheetsService } from './sheets-service.js';
 
+/**
+ * Converte data do formato DD/MM/AAAA para Date object
+ */
+function parseDateBR(dateStr: string): Date {
+  if (!dateStr || dateStr.trim() === '') {
+    return new Date();
+  }
+  
+  // Se já está no formato ISO (AAAA-MM-DD), usar diretamente
+  if (dateStr.includes('-')) {
+    return new Date(dateStr);
+  }
+  
+  // Formato DD/MM/AAAA
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1; // Mês começa em 0
+    const year = parseInt(parts[2]);
+    return new Date(year, month, day);
+  }
+  
+  return new Date(dateStr);
+}
+
 // Planilhas que serão criadas/usadas
 const WORKSHEETS = {
   INVOICES: 'NF-e_Invoices',
@@ -1054,6 +1079,9 @@ async function updateItemQuantityUsed(productName: string, batchNumbers: string[
 
 export async function getDailyExpensesByUserId(userId: number, startDate?: Date, endDate?: Date) {
   console.log(`[getDailyExpensesByUserId] Buscando gastos para userId: ${userId}`);
+  if (startDate) console.log(`[getDailyExpensesByUserId] startDate: ${startDate.toISOString()}`);
+  if (endDate) console.log(`[getDailyExpensesByUserId] endDate: ${endDate.toISOString()}`);
+  
   const rows = await sheetsService.readRows(WORKSHEETS.DAILY_EXPENSES);
   const headers = HEADERS.DAILY_EXPENSES;
   console.log(`[getDailyExpensesByUserId] Total de linhas na planilha: ${rows.length}`);
@@ -1063,30 +1091,46 @@ export async function getDailyExpensesByUserId(userId: number, startDate?: Date,
     const expense = rowToObject(rows[i], headers);
     const expenseUserId = parseInt(expense.userid);
     
-    console.log(`[getDailyExpensesByUserId] Linha ${i}: userId=${expenseUserId}, productName=${expense.productname}, date=${expense.expensedate}, total=${expense.totalexpense}`);
+    // Converter data do formato brasileiro (DD/MM/AAAA) para Date
+    const expenseDate = parseDateBR(expense.expensedate);
+    
+    // Normalizar valor total (converter vírgula para ponto)
+    let totalExpense = expense.totalexpense;
+    if (typeof totalExpense === 'string') {
+      totalExpense = normalizeDecimalFromPtBr(totalExpense);
+    }
+    
+    console.log(`[getDailyExpensesByUserId] Linha ${i}: userId=${expenseUserId}, productName=${expense.productname}, date=${expense.expensedate} -> ${expenseDate.toISOString()}, total=${totalExpense}`);
     
     if (expenseUserId === userId) {
-      const expenseDate = new Date(expense.expensedate);
-      
-      if (startDate && expenseDate < startDate) continue;
-      if (endDate && expenseDate > endDate) continue;
+      // Filtros de data
+      if (startDate && expenseDate < startDate) {
+        console.log(`[getDailyExpensesByUserId] ⏭️ Linha ${i} filtrada (antes de startDate)`);
+        continue;
+      }
+      if (endDate && expenseDate > endDate) {
+        console.log(`[getDailyExpensesByUserId] ⏭️ Linha ${i} filtrada (depois de endDate)`);
+        continue;
+      }
 
       expenses.push({
         id: parseInt(expense.id),
         userId: expenseUserId,
         productName: expense.productname,
         invoiceNumber: expense.invoicenumber || null,
-        expenseDate: expense.expensedate,
+        expenseDate: expenseDate.toISOString().split('T')[0], // Formato AAAA-MM-DD
         quantityUsed: expense.quantityused,
-        totalExpense: expense.totalexpense,
+        totalExpense: totalExpense,
         description: expense.description || null,
         createdAt: expense.createdat,
         updatedAt: expense.updatedat,
       });
+      
+      console.log(`[getDailyExpensesByUserId] ✅ Linha ${i} adicionada aos gastos`);
     }
   }
 
-  console.log(`[getDailyExpensesByUserId] Total de gastos encontrados: ${expenses.length}`);
+  console.log(`[getDailyExpensesByUserId] ✅ Total de gastos encontrados: ${expenses.length}`);
   return expenses.sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime());
 }
 
