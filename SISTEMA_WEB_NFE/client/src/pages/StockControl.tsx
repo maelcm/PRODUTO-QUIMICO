@@ -340,6 +340,8 @@ export default function StockControl() {
                                   const isItemSelected = selectedItems.has(item.itemKey);
                                   const isItemAvailable = item.quantityAvailable > 0;
                                   
+                                  console.log('[StockControl] Item:', item.invoiceNumber, 'emissionDate:', item.emissionDate);
+                                  
                                   return (
                                     <div
                                       key={itemIdx}

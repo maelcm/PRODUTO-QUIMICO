@@ -328,13 +328,13 @@ export const productsRouter = router({
         const itemAvailable = Math.max(0, itemQuantity - itemConsumed);
         const itemUnitPrice = Number(item.unitPrice || 0);
         
-        console.log(`[getProductBatches] Item: ${item.invoiceNumber || 'Manual'} | Lote: ${batchKey} | Qtd: ${itemQuantity} | Consumido: ${itemConsumed} | Disponível: ${itemAvailable}`);
+        console.log(`[getProductBatches] Item: ${item.invoiceNumber || 'Manual'} | Lote: ${batchKey} | Qtd: ${itemQuantity} | Consumido: ${itemConsumed} | Disponível: ${itemAvailable} | Data: ${item.emissionDate}`);
         
         batch.items.push({
           id: item.id,
           itemKey: `${item.origin}_${item.id}`, // Chave única para cada item
           invoiceNumber: item.invoiceNumber,
-          emissionDate: item.emissionDate,
+          emissionDate: item.emissionDate || null,
           emitterName: item.emitterName,
           origin: item.origin,
           quantity: itemQuantity,
