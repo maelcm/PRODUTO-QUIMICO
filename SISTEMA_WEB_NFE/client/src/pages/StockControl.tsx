@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Package, TrendingUp, Calendar, Trash2, Plus, CheckSquare, Square } from 'lucide-react';
-import { normalizeDecimal } from '../lib/utils';
+import { normalizeDecimal, formatDate } from '../lib/utils';
 
 const expenseSchema = z.object({
   productName: z.string().optional(),
@@ -369,9 +369,9 @@ export default function StockControl() {
                                             }`}>
                                               {item.invoiceNumber || 'Manual'}
                                             </span>
-                                            {item.emissionDate && (
+                                            {item.emissionDate && formatDate(item.emissionDate) !== '-' && (
                                               <span className="text-xs text-gray-500">
-                                                ({new Date(item.emissionDate).toLocaleDateString('pt-BR')})
+                                                ({formatDate(item.emissionDate)})
                                               </span>
                                             )}
                                           </div>
