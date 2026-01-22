@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FileText, Upload, PenTool, Search, Package, TrendingUp, Camera, BarChart3 } from 'lucide-react';
+import { FileText, Upload, PenTool, Search, Package, TrendingUp, Camera, BarChart3, Store, LineChart } from 'lucide-react';
 
 export default function Home() {
   const features = [
@@ -51,6 +51,20 @@ export default function Home() {
       icon: BarChart3,
       link: '/reports',
       color: 'bg-yellow-500',
+    },
+    {
+      title: 'Dashboard de Fornecedores',
+      description: 'Análise detalhada de compras e gastos por fornecedor',
+      icon: Store,
+      link: '/suppliers',
+      color: 'bg-pink-500',
+    },
+    {
+      title: 'Gráficos de Consumo',
+      description: 'Visualize gráficos de consumo e gastos ao longo do tempo',
+      icon: LineChart,
+      link: '/consumption',
+      color: 'bg-cyan-500',
     },
     {
       title: 'OCR - Processar Lista',

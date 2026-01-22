@@ -11,6 +11,8 @@ import ManualProductCreate from './pages/ManualProductCreate';
 import Traceability from './pages/Traceability';
 import StockControl from './pages/StockControl';
 import ExpensesReport from './pages/ExpensesReport';
+import SuppliersAnalytics from './pages/SuppliersAnalytics';
+import ConsumptionCharts from './pages/ConsumptionCharts';
 import OcrUpload from './pages/OcrUpload';
 
 const queryClient = new QueryClient({
@@ -41,6 +43,8 @@ function App() {
               <Route path="/traceability" element={<Traceability />} />
               <Route path="/stock" element={<StockControl />} />
               <Route path="/reports" element={<ExpensesReport />} />
+              <Route path="/suppliers" element={<SuppliersAnalytics />} />
+              <Route path="/consumption" element={<ConsumptionCharts />} />
               <Route path="/ocr" element={<OcrUpload />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

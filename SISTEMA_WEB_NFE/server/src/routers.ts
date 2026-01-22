@@ -36,6 +36,7 @@ type DbModule = {
   createDailyExpense: (data: any) => Promise<any>;
   getDailyExpensesByUserId: (userId: number, startDate?: Date, endDate?: Date) => Promise<any[]>;
   deleteDailyExpense: (id: number, userId: number) => Promise<any>;
+  getSupplierStats?: (userId: number) => Promise<any[]>;
 };
 
 // Função para carregar o módulo de banco de dados
@@ -776,11 +777,24 @@ export const ocrRouter = router({
     }),
 });
 
+// Router de Fornecedores
+export const suppliersRouter = router({
+  // Obter estatísticas de fornecedores
+  getStats: protectedProcedure.query(async ({ ctx }) => {
+    const db = await dbPromise;
+    if (!db.getSupplierStats) {
+      throw new Error('getSupplierStats não está disponível neste módulo de banco de dados');
+    }
+    return await db.getSupplierStats(ctx.userId);
+  }),
+});
+
 // Router principal
 export const appRouter = router({
   nfe: nfeRouter,
   products: productsRouter,
   expenses: expensesRouter,
+  suppliers: suppliersRouter,
   ocr: ocrRouter,
 });
 

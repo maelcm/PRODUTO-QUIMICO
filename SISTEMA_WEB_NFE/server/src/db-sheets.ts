@@ -1155,6 +1155,143 @@ export async function getDailyExpensesByUserId(userId: number, startDate?: Date,
   return expenses.sort((a, b) => new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime());
 }
 
+// Obter estatísticas de fornecedores
+export async function getSupplierStats(userId: number) {
+  console.log(`[getSupplierStats] Buscando estatísticas para userId: ${userId}`);
+  
+  // Obter todas as notas fiscais do usuário
+  const invoices = await getAllNfeItemsByUserId(userId);
+  const manualProducts = await getManualProductsByUserId(userId);
+  const expenses = await getDailyExpensesByUserId(userId);
+  
+  // Agrupar por fornecedor
+  const supplierMap = new Map<string, any>();
+  
+  // Processar notas fiscais
+  invoices.forEach((item: any) => {
+    const supplierName = item.invoice?.emitterName || 'Não informado';
+    
+    if (!supplierMap.has(supplierName)) {
+      supplierMap.set(supplierName, {
+        name: supplierName,
+        totalPurchases: 0,
+        totalSpent: 0,
+        productCount: 0,
+        products: new Map(),
+        lastPurchaseDate: null,
+      });
+    }
+    
+    const supplier = supplierMap.get(supplierName);
+    const itemTotal = Number(item.item.totalPrice || 0);
+    
+    supplier.totalPurchases += itemTotal;
+    supplier.productCount++;
+    
+    // Atualizar última data de compra
+    if (item.invoice?.emissionDate) {
+      const purchaseDate = new Date(item.invoice.emissionDate);
+      if (!supplier.lastPurchaseDate || purchaseDate > new Date(supplier.lastPurchaseDate)) {
+        supplier.lastPurchaseDate = item.invoice.emissionDate;
+      }
+    }
+    
+    // Agrupar produtos
+    const productName = item.item.productName;
+    if (!supplier.products.has(productName)) {
+      supplier.products.set(productName, {
+        name: productName,
+        totalQuantity: 0,
+        totalValue: 0,
+      });
+    }
+    
+    const product = supplier.products.get(productName);
+    product.totalQuantity += Number(item.item.quantity || 0);
+    product.totalValue += itemTotal;
+  });
+  
+  // Processar produtos manuais
+  manualProducts.forEach((product: any) => {
+    const supplierName = product.supplier || 'Não informado';
+    
+    if (!supplierMap.has(supplierName)) {
+      supplierMap.set(supplierName, {
+        name: supplierName,
+        totalPurchases: 0,
+        totalSpent: 0,
+        productCount: 0,
+        products: new Map(),
+        lastPurchaseDate: null,
+      });
+    }
+    
+    const supplier = supplierMap.get(supplierName);
+    const itemTotal = Number(product.totalPrice || 0);
+    
+    supplier.totalPurchases += itemTotal;
+    supplier.productCount++;
+    
+    // Atualizar última data de compra
+    if (product.purchaseDate) {
+      const purchaseDate = new Date(product.purchaseDate);
+      if (!supplier.lastPurchaseDate || purchaseDate > new Date(supplier.lastPurchaseDate)) {
+        supplier.lastPurchaseDate = product.purchaseDate;
+      }
+    }
+    
+    // Agrupar produtos
+    const productName = product.productName;
+    if (!supplier.products.has(productName)) {
+      supplier.products.set(productName, {
+        name: productName,
+        totalQuantity: 0,
+        totalValue: 0,
+      });
+    }
+    
+    const prod = supplier.products.get(productName);
+    prod.totalQuantity += Number(product.quantity || 0);
+    prod.totalValue += itemTotal;
+  });
+  
+  // Calcular gastos por fornecedor
+  expenses.forEach((expense: any) => {
+    // Tentar encontrar o fornecedor do produto através das notas
+    const matchingInvoice = invoices.find((inv: any) => 
+      inv.item.productName === expense.productName
+    );
+    
+    const matchingManual = manualProducts.find((prod: any) => 
+      prod.productName === expense.productName
+    );
+    
+    const supplierName = matchingInvoice?.invoice?.emitterName || 
+                        matchingManual?.supplier || 
+                        'Não informado';
+    
+    if (supplierMap.has(supplierName)) {
+      const supplier = supplierMap.get(supplierName);
+      supplier.totalSpent += Number(expense.totalExpense || 0);
+    }
+  });
+  
+  // Converter Map para Array e ordenar
+  const suppliers = Array.from(supplierMap.values()).map(supplier => ({
+    name: supplier.name,
+    totalPurchases: supplier.totalPurchases,
+    totalSpent: supplier.totalSpent,
+    productCount: supplier.productCount,
+    lastPurchaseDate: supplier.lastPurchaseDate,
+    topProducts: Array.from(supplier.products.values())
+      .sort((a: any, b: any) => b.totalValue - a.totalValue)
+      .slice(0, 5), // Top 5 produtos
+  })).sort((a, b) => b.totalPurchases - a.totalPurchases);
+  
+  console.log(`[getSupplierStats] ✅ Total de fornecedores: ${suppliers.length}`);
+  return suppliers;
+}
+
 export async function deleteDailyExpense(id: number, userId: number) {
   console.warn('[DB-Sheets] Delete não implementado ainda para Google Sheets');
   return;
