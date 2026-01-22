@@ -18,16 +18,17 @@ const expenseSchema = z.object({
 
 type ExpenseForm = z.infer<typeof expenseSchema>;
 
-type SelectedBatch = {
+type SelectedItem = {
+  itemKey: string;
   batchNumber: string | null;
-  batchKey: string;
-  totalAvailable: number;
+  invoiceNumber: string | null;
+  quantityAvailable: number;
   unitPrice: number;
 };
 
 export default function StockControl() {
   const [selectedProduct, setSelectedProduct] = useState<string>('');
-  const [selectedBatches, setSelectedBatches] = useState<Set<string>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   const { data: productNames } = trpc.products.getProductNames.useQuery();
   const { data: batches, refetch: refetchBatches } = trpc.products.getProductBatches.useQuery(
@@ -62,7 +63,7 @@ export default function StockControl() {
     console.log('[StockControl] Calculando valor total...');
     console.log('[StockControl] quantityUsed:', quantityUsed);
     console.log('[StockControl] batches:', batches);
-    console.log('[StockControl] selectedBatches:', Array.from(selectedBatches));
+    console.log('[StockControl] selectedItems:', Array.from(selectedItems));
     
     const qty = Number(quantityUsed);
     console.log('[StockControl] qty convertido:', qty);
@@ -73,38 +74,42 @@ export default function StockControl() {
       return;
     }
     
-    if (!batches || selectedBatches.size === 0) {
-      console.log('[StockControl] Sem lotes selecionados, limpando totalExpense');
+    if (!batches || selectedItems.size === 0) {
+      console.log('[StockControl] Sem itens selecionados, limpando totalExpense');
       setValue('totalExpense', '');
       return;
     }
 
-    // Pegar o preço unitário médio dos lotes selecionados
-    const selectedBatchesData = batches.filter(b => {
-      const batchKey = b.batchNumber || 'SEM_LOTE';
-      return selectedBatches.has(batchKey);
+    // Pegar todos os itens selecionados de todos os lotes
+    const selectedItemsData: any[] = [];
+    batches.forEach(batch => {
+      batch.items.forEach((item: any) => {
+        if (selectedItems.has(item.itemKey)) {
+          selectedItemsData.push(item);
+        }
+      });
     });
 
-    console.log('[StockControl] selectedBatchesData:', selectedBatchesData);
+    console.log('[StockControl] selectedItemsData:', selectedItemsData);
 
-    if (selectedBatchesData.length === 0) {
-      console.log('[StockControl] Nenhum lote encontrado, limpando totalExpense');
+    if (selectedItemsData.length === 0) {
+      console.log('[StockControl] Nenhum item encontrado, limpando totalExpense');
       setValue('totalExpense', '');
       return;
     }
 
-    // Calcular preço médio ponderado
+    // Calcular preço médio ponderado dos itens selecionados
     let totalQuantity = 0;
     let weightedSum = 0;
 
-    for (const batch of selectedBatchesData) {
-      const qtyAvailable = normalizeDecimal(batch.totalAvailable);
-      const price = normalizeDecimal(batch.unitPrice);
+    for (const item of selectedItemsData) {
+      const qtyAvailable = normalizeDecimal(item.quantityAvailable);
+      const price = normalizeDecimal(item.unitPrice);
       
-      console.log('[StockControl] Lote:', {
-        batchNumber: batch.batchNumber,
-        unitPrice_raw: batch.unitPrice,
-        totalAvailable_raw: batch.totalAvailable,
+      console.log('[StockControl] Item:', {
+        invoiceNumber: item.invoiceNumber || 'Manual',
+        unitPrice_raw: item.unitPrice,
+        quantityAvailable_raw: item.quantityAvailable,
         qtyAvailable,
         price,
       });
@@ -129,16 +134,16 @@ export default function StockControl() {
     console.log('[StockControl] Resultado:', { averagePrice, total, totalFixed: total.toFixed(2) });
     
     setValue('totalExpense', total.toFixed(2));
-  }, [quantityUsed, batches, selectedBatches, setValue]);
+  }, [quantityUsed, batches, selectedItems, setValue]);
 
-  const toggleBatch = (batchKey: string) => {
-    const newSelected = new Set(selectedBatches);
-    if (newSelected.has(batchKey)) {
-      newSelected.delete(batchKey);
+  const toggleItem = (itemKey: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemKey)) {
+      newSelected.delete(itemKey);
     } else {
-      newSelected.add(batchKey);
+      newSelected.add(itemKey);
     }
-    setSelectedBatches(newSelected);
+    setSelectedItems(newSelected);
   };
 
   const onSubmit = (data: ExpenseForm) => {
@@ -146,7 +151,7 @@ export default function StockControl() {
     console.log('[StockControl] onSubmit chamado!');
     console.log('[StockControl] data:', data);
     console.log('[StockControl] selectedProduct:', selectedProduct);
-    console.log('[StockControl] selectedBatches:', Array.from(selectedBatches));
+    console.log('[StockControl] selectedItems:', Array.from(selectedItems));
     console.log('[StockControl] ========================================');
     
     // Validações básicas
@@ -156,7 +161,7 @@ export default function StockControl() {
       return;
     }
     
-    if (selectedBatches.size === 0) {
+    if (selectedItems.size === 0) {
       alert('Selecione pelo menos um lote para dar baixa!');
       console.error('[StockControl] ❌ Nenhum lote selecionado');
       return;
@@ -168,17 +173,17 @@ export default function StockControl() {
       return;
     }
 
-    // Criar descrição com os lotes selecionados
-    const selectedBatchesList = Array.from(selectedBatches)
-      .map(key => {
-        const batch = batches?.find(b => {
-          const batchKey = b.batchNumber || 'SEM_LOTE';
-          return batchKey === key;
-        });
-        return batch ? `Lote: ${batch.batchNumber || 'SEM_LOTE'}` : '';
-      })
-      .filter(Boolean)
-      .join(', ');
+    // Criar descrição com os itens selecionados
+    const selectedItemsList: string[] = [];
+    batches?.forEach(batch => {
+      batch.items.forEach((item: any) => {
+        if (selectedItems.has(item.itemKey)) {
+          const loteText = batch.batchNumber ? `Lote: ${batch.batchNumber}` : 'SEM LOTE';
+          const notaText = item.invoiceNumber ? `Nota: ${item.invoiceNumber}` : 'Manual';
+          selectedItemsList.push(`${loteText} - ${notaText}`);
+        }
+      });
+    });
 
     const mutationData = {
       productName: selectedProduct,
@@ -186,7 +191,7 @@ export default function StockControl() {
       expenseDate: data.expenseDate || new Date().toISOString().split('T')[0],
       quantityUsed: String(data.quantityUsed),
       totalExpense: String(data.totalExpense || '0'),
-      description: `Lotes selecionados: ${selectedBatchesList}${data.description ? ' - ' + data.description : ''}`,
+      description: `Itens selecionados: ${selectedItemsList.join(', ')}${data.description ? ' - ' + data.description : ''}`,
     };
     
     console.log('[StockControl] Dados normalizados que serão enviados:', mutationData);
@@ -269,106 +274,128 @@ export default function StockControl() {
               ) : (
                 <div className="space-y-4">
                   {batches.map((batch, batchIdx) => {
-                    const batchKey = batch.batchNumber || 'SEM_LOTE';
-                    const isSelected = selectedBatches.has(batchKey);
                     const isAvailable = batch.totalAvailable > 0;
                     
                     return (
                       <div
                         key={batchIdx}
-                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                          isSelected
-                            ? 'border-indigo-500 bg-indigo-50'
-                            : isAvailable
-                            ? 'border-gray-200 hover:border-gray-300'
+                        className={`border-2 rounded-lg p-4 transition-all ${
+                          isAvailable
+                            ? 'border-gray-200'
                             : 'border-gray-100 bg-gray-50 opacity-60'
                         }`}
-                        onClick={() => isAvailable && toggleBatch(batchKey)}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1">
-                            {isSelected ? (
-                              <CheckSquare className="w-5 h-5 text-indigo-600" />
-                            ) : (
-                              <Square className="w-5 h-5 text-gray-400" />
-                            )}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-lg">
+                              {batch.batchNumber || 'SEM LOTE'}
+                            </h3>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              isAvailable
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {isAvailable ? 'Disponível' : 'Indisponível'}
+                            </span>
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-semibold text-lg">
-                                {batch.batchNumber || 'SEM LOTE'}
-                              </h3>
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                isAvailable
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}>
-                                {isAvailable ? 'Disponível' : 'Indisponível'}
-                              </span>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                            <div>
+                              <p className="text-gray-500">Quantidade Total</p>
+                              <p className="font-medium">
+                                {Number(batch.totalQuantity).toLocaleString('pt-BR')}
+                              </p>
                             </div>
-                            
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-gray-500">Disponível</p>
+                              <p className="font-medium text-green-600">
+                                {Number(batch.totalAvailable).toLocaleString('pt-BR')}
+                              </p>
+                            </div>
+                            {batch.expirationDate && (
                               <div>
-                                <p className="text-gray-500">Quantidade Total</p>
+                                <p className="text-gray-500">Validade</p>
                                 <p className="font-medium">
-                                  {Number(batch.totalQuantity).toLocaleString('pt-BR')}
+                                  {new Date(batch.expirationDate).toLocaleDateString('pt-BR')}
                                 </p>
                               </div>
+                            )}
+                            {batch.manufacturingDate && (
                               <div>
-                                <p className="text-gray-500">Disponível</p>
-                                <p className="font-medium text-green-600">
-                                  {Number(batch.totalAvailable).toLocaleString('pt-BR')}
+                                <p className="text-gray-500">Fabricação</p>
+                                <p className="font-medium">
+                                  {new Date(batch.manufacturingDate).toLocaleDateString('pt-BR')}
                                 </p>
-                              </div>
-                              {batch.expirationDate && (
-                                <div>
-                                  <p className="text-gray-500">Validade</p>
-                                  <p className="font-medium">
-                                    {new Date(batch.expirationDate).toLocaleDateString('pt-BR')}
-                                  </p>
-                                </div>
-                              )}
-                              {batch.manufacturingDate && (
-                                <div>
-                                  <p className="text-gray-500">Fabricação</p>
-                                  <p className="font-medium">
-                                    {new Date(batch.manufacturingDate).toLocaleDateString('pt-BR')}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {batch.items.length > 0 && (
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <p className="text-xs text-gray-500 mb-2">
-                                  Itens deste lote ({batch.items.length}):
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                  {batch.items.map((item: any, itemIdx: number) => (
-                                    <span
-                                      key={itemIdx}
-                                      className={`px-2 py-1 rounded text-xs ${
-                                        item.origin === 'NF-e'
-                                          ? 'bg-blue-100 text-blue-800'
-                                          : 'bg-purple-100 text-purple-800'
-                                      }`}
-                                    >
-                                      {item.invoiceNumber || 'Manual'} - {Number(item.quantityAvailable).toLocaleString('pt-BR')} {item.unitOfMeasure}
-                                    </span>
-                                  ))}
-                                </div>
                               </div>
                             )}
                           </div>
+                          
+                          {batch.items.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-xs text-gray-500 mb-2">
+                                Selecione os itens deste lote ({batch.items.length}):
+                              </p>
+                              <div className="space-y-2">
+                                {batch.items.map((item: any, itemIdx: number) => {
+                                  const isItemSelected = selectedItems.has(item.itemKey);
+                                  const isItemAvailable = item.quantityAvailable > 0;
+                                  
+                                  return (
+                                    <div
+                                      key={itemIdx}
+                                      className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-all ${
+                                        isItemSelected
+                                          ? 'bg-indigo-100 border border-indigo-300'
+                                          : isItemAvailable
+                                          ? 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                                          : 'bg-gray-100 opacity-50 cursor-not-allowed border border-gray-200'
+                                      }`}
+                                      onClick={() => isItemAvailable && toggleItem(item.itemKey)}
+                                    >
+                                      <div className="flex-shrink-0">
+                                        {isItemSelected ? (
+                                          <CheckSquare className="w-4 h-4 text-indigo-600" />
+                                        ) : (
+                                          <Square className="w-4 h-4 text-gray-400" />
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                            item.origin === 'NF-e'
+                                              ? 'bg-blue-100 text-blue-800'
+                                              : 'bg-purple-100 text-purple-800'
+                                          }`}>
+                                            {item.invoiceNumber || 'Manual'}
+                                          </span>
+                                          <span className="text-sm">
+                                            <span className="font-semibold text-green-600">
+                                              {Number(item.quantityAvailable).toLocaleString('pt-BR')} {item.unitOfMeasure}
+                                            </span>
+                                            <span className="text-gray-500 ml-1">
+                                              disponível de {Number(item.quantity).toLocaleString('pt-BR')}
+                                            </span>
+                                          </span>
+                                          <span className="text-xs text-gray-500 ml-auto">
+                                            R$ {Number(item.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/un
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
                   })}
                   
-                  {selectedBatches.size > 0 && (
+                  {selectedItems.size > 0 && (
                     <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
                       <p className="text-sm font-medium text-indigo-800">
-                        {selectedBatches.size} lote(s) selecionado(s)
+                        {selectedItems.size} item(ns) selecionado(s)
                       </p>
                     </div>
                   )}
@@ -468,7 +495,7 @@ export default function StockControl() {
           {selectedProduct && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Registrar Baixa</h2>
-              {selectedBatches.size === 0 && (
+              {selectedItems.size === 0 && (
                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
                     ⚠️ Selecione pelo menos um lote acima para dar baixa
@@ -488,14 +515,14 @@ export default function StockControl() {
                   />
                 </div>
                 
-                {selectedBatches.size > 0 && (
+                {selectedItems.size > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Lotes Selecionados
                     </label>
                     <div className="p-3 bg-indigo-50 rounded-lg">
                       <p className="text-sm text-indigo-800">
-                        {Array.from(selectedBatches).map(key => {
+                        {Array.from(selectedItems).map(key => {
                           const batch = batches?.find(b => {
                             const batchKey = b.batchNumber || 'SEM_LOTE';
                             return batchKey === key;

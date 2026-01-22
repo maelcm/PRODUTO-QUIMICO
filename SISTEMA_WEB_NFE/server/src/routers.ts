@@ -255,6 +255,10 @@ export const productsRouter = router({
       const allProducts = await db.getAllProductsByUserId(ctx.userId);
       const expenses = await db.getDailyExpensesByUserId(ctx.userId);
       
+      console.log(`[getProductBatches] Produto: ${input.productName}`);
+      console.log(`[getProductBatches] Total de itens encontrados: ${allProducts.filter((p: any) => p.productName === input.productName).length}`);
+      console.log(`[getProductBatches] Total de gastos: ${expenses.length}`);
+      
       // Filtrar produtos com o nome especificado
       const productItems = allProducts.filter((p: any) => p.productName === input.productName);
       
@@ -263,7 +267,6 @@ export const productsRouter = router({
       
       productItems.forEach((item: any) => {
         const batchKey = item.batchNumber || 'SEM_LOTE';
-        const invoiceKey = item.invoiceNumber || `manual_${item.id}`;
         
         if (!batchMap.has(batchKey)) {
           batchMap.set(batchKey, {
@@ -280,29 +283,40 @@ export const productsRouter = router({
         
         const batch = batchMap.get(batchKey);
         
-        // Calcular quantidade consumida deste item específico
-        // Considerar gastos que mencionam este lote na descrição ou que são do mesmo produto
-        const consumed = expenses
+        // Calcular quantidade consumida DESTE ITEM ESPECÍFICO
+        // Usar o ID do item para rastrear gastos específicos
+        const itemConsumed = expenses
           .filter((exp: any) => {
             if (exp.productName !== input.productName) return false;
-            // Se tem lote, verificar se o gasto menciona o lote na descrição
-            if (item.batchNumber && exp.description) {
-              return exp.description.includes(item.batchNumber);
+            
+            // Verificar se o gasto menciona o número da nota deste item
+            if (item.invoiceNumber && exp.description) {
+              return exp.description.includes(item.invoiceNumber);
             }
-            // Se não tem lote específico, considerar todos os gastos do produto
-            return true;
+            
+            // Se for produto manual, verificar se menciona "manual" ou o ID
+            if (!item.invoiceNumber && item.origin === 'Manual') {
+              return exp.description?.includes('Manual') || exp.description?.includes(`ID: ${item.id}`);
+            }
+            
+            // Se o gasto menciona o lote, considerar proporcionalmente
+            if (item.batchNumber && exp.description?.includes(`Lote: ${item.batchNumber}`)) {
+              return true;
+            }
+            
+            return false;
           })
           .reduce((sum: number, exp: any) => sum + Number(exp.quantityUsed || 0), 0);
         
-        // Para itens individuais, calcular disponível baseado na quantidade original
         const itemQuantity = Number(item.quantity || 0);
-        const itemConsumed = consumed; // Simplificado - pode ser melhorado
         const itemAvailable = Math.max(0, itemQuantity - itemConsumed);
-        
         const itemUnitPrice = Number(item.unitPrice || 0);
+        
+        console.log(`[getProductBatches] Item: ${item.invoiceNumber || 'Manual'} | Lote: ${batchKey} | Qtd: ${itemQuantity} | Consumido: ${itemConsumed} | Disponível: ${itemAvailable}`);
         
         batch.items.push({
           id: item.id,
+          itemKey: `${item.origin}_${item.id}`, // Chave única para cada item
           invoiceNumber: item.invoiceNumber,
           emissionDate: item.emissionDate,
           emitterName: item.emitterName,
@@ -315,26 +329,15 @@ export const productsRouter = router({
         });
         
         batch.totalQuantity += itemQuantity;
-        batch.totalAvailable += itemAvailable;
         batch.totalWeightedPrice += itemQuantity * itemUnitPrice;
       });
       
-      // Recalcular totalAvailable e unitPrice médio para cada lote
+      // Calcular totais do lote baseado nos itens
       batchMap.forEach((batch, batchKey) => {
-        // Calcular gastos totais deste lote
-        const batchExpenses = expenses
-          .filter((exp: any) => {
-            if (exp.productName !== input.productName) return false;
-            if (batchKey === 'SEM_LOTE') {
-              // Para sem lote, considerar gastos sem menção de lote específico
-              return !exp.description || !exp.description.includes('Lote:');
-            }
-            // Para lotes específicos, verificar se o gasto menciona o lote
-            return exp.description?.includes(`Lote: ${batchKey}`);
-          })
-          .reduce((sum: number, exp: any) => sum + Number(exp.quantityUsed || 0), 0);
-        
-        batch.totalAvailable = Math.max(0, batch.totalQuantity - batchExpenses);
+        // Total disponível é a soma dos disponíveis de cada item
+        batch.totalAvailable = batch.items.reduce((sum: number, item: any) => 
+          sum + item.quantityAvailable, 0
+        );
         
         // Calcular preço unitário médio ponderado do lote
         if (batch.totalQuantity > 0) {
@@ -342,6 +345,8 @@ export const productsRouter = router({
         } else {
           batch.unitPrice = 0;
         }
+        
+        console.log(`[getProductBatches] Lote ${batchKey}: Total=${batch.totalQuantity} | Disponível=${batch.totalAvailable} | Preço Médio=${batch.unitPrice.toFixed(2)}`);
         
         // Remover campo auxiliar
         delete batch.totalWeightedPrice;
