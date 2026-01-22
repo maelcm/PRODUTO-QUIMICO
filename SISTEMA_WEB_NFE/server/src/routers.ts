@@ -255,12 +255,28 @@ export const productsRouter = router({
       const allProducts = await db.getAllProductsByUserId(ctx.userId);
       const expenses = await db.getDailyExpensesByUserId(ctx.userId);
       
-      console.log(`[getProductBatches] Produto: ${input.productName}`);
-      console.log(`[getProductBatches] Total de itens encontrados: ${allProducts.filter((p: any) => p.productName === input.productName).length}`);
-      console.log(`[getProductBatches] Total de gastos: ${expenses.length}`);
+      console.log(`[getProductBatches] Produto selecionado: ${input.productName}`);
       
-      // Filtrar produtos com o nome especificado
-      const productItems = allProducts.filter((p: any) => p.productName === input.productName);
+      // Normalizar o nome do produto (remover espaços extras, traços no final, etc.)
+      const normalizeProductName = (name: string) => {
+        return name
+          .trim()
+          .replace(/\s+/g, ' ') // Substituir múltiplos espaços por um único espaço
+          .replace(/[-\s]+$/, '') // Remover traços e espaços no final
+          .toUpperCase();
+      };
+      
+      const normalizedSearchName = normalizeProductName(input.productName);
+      console.log(`[getProductBatches] Nome normalizado: ${normalizedSearchName}`);
+      
+      // Filtrar produtos com nomes similares (normalizados)
+      const productItems = allProducts.filter((p: any) => {
+        const normalizedProductName = normalizeProductName(p.productName || '');
+        return normalizedProductName === normalizedSearchName;
+      });
+      
+      console.log(`[getProductBatches] Total de itens encontrados: ${productItems.length}`);
+      console.log(`[getProductBatches] Total de gastos: ${expenses.length}`);
       
       // Agrupar por lote (batchNumber)
       const batchMap = new Map<string, any>();

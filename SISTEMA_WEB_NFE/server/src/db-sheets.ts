@@ -884,7 +884,28 @@ export async function getAllProductsByUserId(userId: number) {
 export async function getDistinctProductNames(userId: number) {
   const allProducts = await getAllProductsByUserId(userId);
   const names = allProducts.map((p: any) => p.productName).filter(Boolean);
-  return [...new Set(names)].sort();
+  
+  // Normalizar e agrupar nomes similares
+  const normalizeProductName = (name: string) => {
+    return name
+      .trim()
+      .replace(/\s+/g, ' ') // Substituir múltiplos espaços por um único espaço
+      .replace(/[-\s]+$/, '') // Remover traços e espaços no final
+      .toUpperCase();
+  };
+  
+  // Agrupar nomes por versão normalizada
+  const nameMap = new Map<string, string>();
+  names.forEach(name => {
+    const normalized = normalizeProductName(name);
+    if (!nameMap.has(normalized)) {
+      // Usar a primeira ocorrência como nome "oficial"
+      nameMap.set(normalized, name.trim().replace(/[-\s]+$/, ''));
+    }
+  });
+  
+  // Retornar apenas os nomes únicos (normalizados)
+  return Array.from(nameMap.values()).sort();
 }
 
 export async function getInvoicesByProductName(productName: string, userId: number) {
