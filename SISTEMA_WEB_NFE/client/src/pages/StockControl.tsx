@@ -203,7 +203,7 @@ export default function StockControl() {
           console.log('[StockControl] ✅ Mutation sucesso:', result);
           alert('Gasto registrado com sucesso!');
           reset();
-          setSelectedBatches(new Set());
+          setSelectedItems(new Set());
           refetchExpenses();
           refetchBatches();
         },
@@ -559,7 +559,7 @@ export default function StockControl() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   />
                   {errors.quantityUsed && (
-                    <p className="mt-1 text-sm text-red-600">{errors.quantityUsed.message}</p>
+                    <p className="mt-1 text-sm text-red-600">{String(errors.quantityUsed.message)}</p>
                   )}
                 </div>
 
@@ -575,7 +575,7 @@ export default function StockControl() {
                     placeholder="R$ 0,00"
                   />
                   {errors.totalExpense && (
-                    <p className="mt-1 text-sm text-red-600">{errors.totalExpense.message}</p>
+                    <p className="mt-1 text-sm text-red-600">{String(errors.totalExpense.message)}</p>
                   )}
                 </div>
 
