@@ -498,7 +498,7 @@ export default function StockControl() {
               {selectedItems.size === 0 && (
                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    ⚠️ Selecione pelo menos um lote acima para dar baixa
+                    ⚠️ Selecione pelo menos um item acima para dar baixa
                   </p>
                 </div>
               )}
@@ -518,18 +518,37 @@ export default function StockControl() {
                 {selectedItems.size > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Lotes Selecionados
+                      Itens Selecionados
                     </label>
-                    <div className="p-3 bg-indigo-50 rounded-lg">
-                      <p className="text-sm text-indigo-800">
-                        {Array.from(selectedItems).map(key => {
-                          const batch = batches?.find(b => {
-                            const batchKey = b.batchNumber || 'SEM_LOTE';
-                            return batchKey === key;
-                          });
-                          return batch?.batchNumber || 'SEM LOTE';
-                        }).join(', ')}
-                      </p>
+                    <div className="p-3 bg-indigo-50 rounded-lg space-y-1">
+                      {Array.from(selectedItems).map(itemKey => {
+                        // Encontrar o item nos batches
+                        let foundItem: any = null;
+                        let foundBatch: any = null;
+                        
+                        batches?.forEach(batch => {
+                          const item = batch.items.find((i: any) => i.itemKey === itemKey);
+                          if (item) {
+                            foundItem = item;
+                            foundBatch = batch;
+                          }
+                        });
+                        
+                        if (foundItem && foundBatch) {
+                          return (
+                            <div key={itemKey} className="flex items-center gap-2 text-sm text-indigo-800">
+                              <span className="font-medium">
+                                Lote: {foundBatch.batchNumber || 'SEM LOTE'}
+                              </span>
+                              <span className="text-gray-500">•</span>
+                              <span>
+                                {foundItem.invoiceNumber || 'Manual'} - {Number(foundItem.quantityAvailable).toLocaleString('pt-BR')} {foundItem.unitOfMeasure}
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
                     </div>
                   </div>
                 )}
