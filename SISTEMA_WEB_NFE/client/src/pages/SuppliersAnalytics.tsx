@@ -3,9 +3,7 @@ import { trpc } from '../lib/trpc';
 import PageHeader from '../components/PageHeader';
 import { Store, TrendingUp, Package, Calendar, PieChart, BarChart3 } from 'lucide-react';
 import {
-  PieChart as RechartsP
-
-ieChart,
+  PieChart as RechartsPieChart,
   Pie,
   Cell,
   BarChart,
